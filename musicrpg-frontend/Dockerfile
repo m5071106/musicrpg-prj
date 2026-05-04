@@ -9,7 +9,7 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
-RUN npm run build
+RUN npx next build --webpack
 
 # ---- runner ----
 FROM node:22-alpine AS runner

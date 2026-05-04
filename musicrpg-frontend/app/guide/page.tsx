@@ -231,6 +231,63 @@ export default async function GuidePage({ searchParams }: Props) {
         ))}
       </div>
 
+      {/* ホーム画面に追加 */}
+      <p
+        className="text-xs font-bold mb-3"
+        style={{ color: 'var(--dim)', fontFamily: 'var(--font-dot-gothic), monospace' }}
+      >
+        もっと便利に使う
+      </p>
+      <div
+        className="rounded-[18px] border-2 p-4 mb-8"
+        style={{ background: 'var(--panel)', borderColor: 'var(--border)', boxShadow: '0 2px 0 #e8c9f0' }}
+      >
+        <p className="text-sm font-bold mb-1" style={{ color: 'var(--purple)' }}>
+          📲 ホーム画面に追加するとアプリとして使えます
+        </p>
+        <p className="text-xs mb-3" style={{ color: 'var(--dim)' }}>
+          インストール不要・ブラウザのバーが消えてアプリそっくりな見た目になります
+        </p>
+        <div className="flex flex-col gap-2">
+          <div
+            className="rounded-[12px] p-3"
+            style={{ background: '#f0fdf4', border: '1.5px solid #a8e6b0' }}
+          >
+            <p className="text-xs font-bold mb-1" style={{ color: '#3a7d50' }}>🍎 iPhone の場合（Safari で開く）</p>
+            <ol className="flex flex-col gap-0.5">
+              {[
+                '画面下の 共有ボタン（四角＋上矢印）をタップ',
+                '「ホーム画面に追加」をタップ',
+                '右上の「追加」をタップして完了',
+              ].map((step, i) => (
+                <li key={i} className="text-xs flex gap-1.5" style={{ color: '#3a2a4a' }}>
+                  <span style={{ color: '#3a7d50', fontWeight: 700, flexShrink: 0 }}>{i + 1}.</span>
+                  <span>{step}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+          <div
+            className="rounded-[12px] p-3"
+            style={{ background: '#edf6ff', border: '1.5px solid #a8cef5' }}
+          >
+            <p className="text-xs font-bold mb-1" style={{ color: '#1a5fa8' }}>🤖 Android の場合（Chrome で開く）</p>
+            <ol className="flex flex-col gap-0.5">
+              {[
+                '右上の「⋮」メニューをタップ',
+                '「ホーム画面に追加」または「アプリをインストール」をタップ',
+                '「追加」または「インストール」をタップして完了',
+              ].map((step, i) => (
+                <li key={i} className="text-xs flex gap-1.5" style={{ color: '#3a2a4a' }}>
+                  <span style={{ color: '#1a5fa8', fontWeight: 700, flexShrink: 0 }}>{i + 1}.</span>
+                  <span>{step}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </div>
+      </div>
+
       {/* CTAボタン */}
       <div className="flex flex-col gap-3">
         {isWelcome ? (

@@ -1,5 +1,36 @@
 const BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
 
+const ERROR_MAP: Record<string, string> = {
+  '提供された認証情報でログインできません。': 'ユーザー名またはパスワードが違います',
+  'Unable to log in with provided credentials.': 'ユーザー名またはパスワードが違います',
+  'A user with that username already exists.': 'そのユーザー名はすでに使われています',
+  'このユーザー名はすでに使われています。': 'そのユーザー名はすでに使われています',
+  'This password is too short.': 'パスワードは8文字以上にしてください',
+  'This password is too common.': 'そのパスワードは使いやすすぎます。別のものを試してください',
+  'This password is entirely numeric.': 'パスワードに数字以外の文字を含めてください',
+};
+
+async function parseError(res: Response): Promise<string> {
+  const text = await res.text();
+  try {
+    const json = JSON.parse(text) as Record<string, unknown>;
+    const candidates = [
+      ...(Array.isArray(json.non_field_errors) ? json.non_field_errors : []),
+      ...(typeof json.detail === 'string' ? [json.detail] : []),
+      ...Object.values(json)
+        .filter(Array.isArray)
+        .flatMap((v) => v as string[]),
+    ];
+    for (const msg of candidates) {
+      if (ERROR_MAP[msg]) return ERROR_MAP[msg];
+    }
+    if (candidates.length > 0) return candidates[0] as string;
+  } catch {
+    // not JSON
+  }
+  return 'エラーが発生しました。しばらくしてから再度お試しください';
+}
+
 export async function apiFetch<T>(
   path: string,
   options: RequestInit = {}
@@ -13,7 +44,7 @@ export async function apiFetch<T>(
       ...options.headers,
     },
   });
-  if (!res.ok) throw new Error(await res.text());
+  if (!res.ok) throw new Error(await parseError(res));
   return res.json();
 }
 
@@ -31,7 +62,7 @@ export async function login(username: string, password: string) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username, password }),
   });
-  if (!res.ok) throw new Error(await res.text());
+  if (!res.ok) throw new Error(await parseError(res));
   const data = await res.json();
   storeTokens(data, username);
   return data;
@@ -43,7 +74,7 @@ export async function register(username: string, password1: string, password2: s
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username, password1, password2 }),
   });
-  if (!res.ok) throw new Error(await res.text());
+  if (!res.ok) throw new Error(await parseError(res));
   const data = await res.json();
   storeTokens(data, username);
   return data;
