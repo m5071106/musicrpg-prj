@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #fffbf4;
+  --panel: #ffffff;
+  --border: #e8c9f0;
+  --purple: #b06ee0;
+  --pink: #ff7eb3;
+  --cyan: #5bc8e8;
+  --gold: #f5a623;
+  --green: #6dcc7f;
+  --lavender: #e8d5f8;
+  --text: #3a2a4a;
+  --dim: #9a8aaa;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans JP', sans-serif;
+  min-height: 100dvh;
+}
+
+input[type='range'] {
+  cursor: pointer;
+}

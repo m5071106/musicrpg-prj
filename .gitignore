@@ -1,0 +1,22 @@
+# ── Python / Django ──────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+*.sqlite3
+staticfiles/
+.env
+.env.*
+
+# ── Node / Next.js ───────────────────────────
+node_modules/
+.next/
+*.tsbuildinfo
+
+# ── Deploy state (contains passwords) ────────
+.deploy_state
+
+# ── OS ───────────────────────────────────────
+.DS_Store
+Thumbs.db
