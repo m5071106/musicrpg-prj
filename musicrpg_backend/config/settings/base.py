@@ -2,9 +2,8 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
-
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
+load_dotenv(BASE_DIR / '.env')
 
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dev-key-change-in-production')
 
@@ -29,6 +28,7 @@ INSTALLED_APPS = [
     # Local
     'apps.users',
     'apps.music',
+    'apps.feedback',
 ]
 
 MIDDLEWARE = [
@@ -105,6 +105,12 @@ REST_AUTH = {
 ACCOUNT_EMAIL_VERIFICATION = 'none'
 ACCOUNT_AUTHENTICATION_METHOD = 'username'
 ACCOUNT_EMAIL_REQUIRED = False
+
+JIRA_BASE_URL = os.environ.get('JIRA_BASE_URL', '')
+JIRA_EMAIL = os.environ.get('JIRA_EMAIL', '')
+JIRA_API_TOKEN = os.environ.get('JIRA_API_TOKEN', '')
+JIRA_PROJECT_KEY = os.environ.get('JIRA_PROJECT_KEY', '')
+JIRA_ISSUE_TYPE = os.environ.get('JIRA_ISSUE_TYPE', 'Task')
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Musician RPG Card API',

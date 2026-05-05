@@ -100,6 +100,11 @@ if [[ "$SKIP_INFRA" == false ]]; then
   success "$ENVIRONMENT_NAME"
 fi  # end SKIP_INFRA
 
+# SECRET_KEY を .deploy_state に保存（再デプロイで JWT が失効しないよう固定）
+if ! grep -q "^SECRET_KEY=" "$ACR_STATE_FILE" 2>/dev/null; then
+  echo "SECRET_KEY=$SECRET_KEY" >> "$ACR_STATE_FILE"
+fi
+
 # ── 6. Docker 起動確認 ───────────────────────────────────────
 step "Docker Desktop 起動確認"
 if ! docker info &>/dev/null; then
@@ -120,9 +125,12 @@ ACR_LOGIN_SERVER=$(az acr show --name "$ACR_NAME" --query loginServer -o tsv)
 az acr login --name "$ACR_NAME"
 success "Login server: $ACR_LOGIN_SERVER"
 
+# デプロイごとにユニークなタグを生成（Azure が必ず新イメージを Pull するため）
+DEPLOY_TAG=$(date +%Y%m%d%H%M%S)
+
 # ── 7. Build & push backend ───────────────────────────────────
 step "バックエンド Docker イメージ ビルド & プッシュ"
-BACKEND_IMAGE="$ACR_LOGIN_SERVER/musicrpg-backend:latest"
+BACKEND_IMAGE="$ACR_LOGIN_SERVER/musicrpg-backend:$DEPLOY_TAG"
 docker build --platform linux/amd64 -t "$BACKEND_IMAGE" ./musicrpg_backend
 docker push "$BACKEND_IMAGE"
 success "Pushed: $BACKEND_IMAGE"
@@ -136,6 +144,17 @@ if az containerapp show --name "$BACKEND_APP" --resource-group "$RESOURCE_GROUP"
     --name "$BACKEND_APP" \
     --resource-group "$RESOURCE_GROUP" \
     --image "$BACKEND_IMAGE" \
+    --set-env-vars \
+        DJANGO_SETTINGS_MODULE=config.settings.production \
+        SECRET_KEY="$SECRET_KEY" \
+        DATABASE_URL="$DATABASE_URL" \
+        CORS_ALLOW_ALL=true \
+        ALLOWED_HOSTS="*" \
+        "JIRA_BASE_URL=${JIRA_BASE_URL:-}" \
+        "JIRA_EMAIL=${JIRA_EMAIL:-}" \
+        "JIRA_API_TOKEN=${JIRA_API_TOKEN:-}" \
+        "JIRA_PROJECT_KEY=${JIRA_PROJECT_KEY:-}" \
+        "JIRA_ISSUE_TYPE=${JIRA_ISSUE_TYPE:-Task}" \
     -o none
 else
   az containerapp create \
@@ -157,6 +176,11 @@ else
         DATABASE_URL="$DATABASE_URL" \
         CORS_ALLOW_ALL=true \
         ALLOWED_HOSTS="*" \
+        JIRA_BASE_URL="${JIRA_BASE_URL:-}" \
+        JIRA_EMAIL="${JIRA_EMAIL:-}" \
+        JIRA_API_TOKEN="${JIRA_API_TOKEN:-}" \
+        JIRA_PROJECT_KEY="${JIRA_PROJECT_KEY:-}" \
+        JIRA_ISSUE_TYPE="${JIRA_ISSUE_TYPE:-Task}" \
     -o none
 fi
 
@@ -170,7 +194,7 @@ success "Backend URL: $BACKEND_DISPLAY_URL"
 
 # ── 9. Build & push frontend ──────────────────────────────────
 step "フロントエンド Docker イメージ ビルド & プッシュ (APIのURLを埋め込み)"
-FRONTEND_IMAGE="$ACR_LOGIN_SERVER/musicrpg-frontend:latest"
+FRONTEND_IMAGE="$ACR_LOGIN_SERVER/musicrpg-frontend:$DEPLOY_TAG"
 docker build \
   --platform linux/amd64 \
   --build-arg NEXT_PUBLIC_API_BASE_URL="$BACKEND_URL" \

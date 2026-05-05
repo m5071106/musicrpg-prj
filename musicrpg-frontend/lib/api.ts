@@ -17,6 +17,7 @@ async function parseError(res: Response): Promise<string> {
     const candidates = [
       ...(Array.isArray(json.non_field_errors) ? json.non_field_errors : []),
       ...(typeof json.detail === 'string' ? [json.detail] : []),
+      ...(typeof json.error === 'string' ? [json.error] : []),
       ...Object.values(json)
         .filter(Array.isArray)
         .flatMap((v) => v as string[]),
@@ -90,4 +91,53 @@ export function logout() {
 export function getStoredUsername(): string {
   if (typeof window === 'undefined') return '';
   return localStorage.getItem('username') ?? '';
+}
+
+// ── Admin ─────────────────────────────────────────────────────
+function adminHeaders() {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null;
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
+
+export async function adminLogin(username: string, password: string) {
+  const res = await fetch(`${BASE}/auth/login/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password }),
+  });
+  if (!res.ok) throw new Error(await parseError(res));
+  const data = await res.json() as { access: string; refresh: string };
+  localStorage.setItem('admin_token', data.access);
+
+  const meRes = await fetch(`${BASE}/admin/me/`, { headers: adminHeaders() });
+  if (!meRes.ok) {
+    localStorage.removeItem('admin_token');
+    throw new Error('管理者権限がありません');
+  }
+  const me = await meRes.json() as { is_staff: boolean; username: string };
+  if (!me.is_staff) {
+    localStorage.removeItem('admin_token');
+    throw new Error('管理者権限がありません');
+  }
+  localStorage.setItem('admin_username', me.username);
+  return me;
+}
+
+export function adminLogout() {
+  localStorage.removeItem('admin_token');
+  localStorage.removeItem('admin_username');
+}
+
+export function getAdminUsername(): string {
+  if (typeof window === 'undefined') return '';
+  return localStorage.getItem('admin_username') ?? '';
+}
+
+export async function adminFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, { ...options, headers: { ...adminHeaders(), ...options.headers } });
+  if (!res.ok) throw new Error(await parseError(res));
+  return res.json();
 }

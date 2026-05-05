@@ -5,11 +5,12 @@ import { usePathname, useRouter } from 'next/navigation';
 import { logout } from '@/lib/api';
 
 const NAV_ITEMS = [
-  { href: '/qr',      label: 'QR',       icon: '🎴' },
-  { href: '/compare', label: '比較',     icon: '⚔️' },
-  { href: '/songs',   label: '曲',       icon: '🎵' },
-  { href: '/status',  label: 'ステータス', icon: '📊' },
-  { href: '/history', label: '履歴',     icon: '📋' },
+  { href: '/qr',       label: 'QR',       icon: '🎴' },
+  { href: '/compare',  label: '比較',     icon: '⚔️' },
+  { href: '/songs',    label: '曲',       icon: '🎵' },
+  { href: '/status',   label: 'ステータス', icon: '📊' },
+  { href: '/history',  label: '履歴',     icon: '📋' },
+  { href: '/feedback', label: '意見',     icon: '💬' },
 ] as const;
 
 export default function NavBar() {
