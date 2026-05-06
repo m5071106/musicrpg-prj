@@ -21,10 +21,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="min-h-dvh" style={{ background: '#f0f9ff', color: '#0c4a6e' }}>
+    <div className="min-h-dvh overflow-x-hidden w-full" style={{ background: '#f0f9ff', color: '#0c4a6e' }}>
       {!isLogin && (
         <header
-          className="flex items-center justify-between px-5 py-3 border-b shadow-sm"
+          className="flex items-center justify-between px-4 py-3 border-b shadow-sm flex-wrap gap-2"
           style={{ background: '#ffffff', borderColor: '#bae6fd' }}
         >
           <span
@@ -33,7 +33,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           >
             🎵 ADMIN
           </span>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {NAV.map(({ href, label, icon }) => (
               <Link
                 key={href}
@@ -60,7 +60,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </header>
       )}
-      <main className="px-4 py-6 max-w-4xl mx-auto">{children}</main>
+      <main className="px-4 py-6 max-w-4xl mx-auto w-full overflow-x-hidden">{children}</main>
     </div>
   );
 }

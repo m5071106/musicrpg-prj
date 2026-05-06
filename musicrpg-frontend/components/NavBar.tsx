@@ -24,11 +24,14 @@ export default function NavBar() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around px-2 py-1.5 border-t-2"
+      className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t-2"
       style={{
         background: '#ffffff',
         borderColor: '#e8c9f0',
         boxShadow: '0 -2px 8px rgba(176,110,224,0.08)',
+        paddingLeft: 'env(safe-area-inset-left)',
+        paddingRight: 'env(safe-area-inset-right)',
+        paddingBottom: 'env(safe-area-inset-bottom)',
       }}
     >
       {NAV_ITEMS.map(({ href, label, icon }) => {
@@ -37,7 +40,7 @@ export default function NavBar() {
           <Link
             key={href}
             href={href}
-            className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-[10px] transition-all min-w-0"
+            className="flex flex-col items-center gap-0.5 py-1.5 rounded-[10px] transition-all flex-1 min-w-0"
             style={{
               color: active ? '#b06ee0' : '#9a8aaa',
               background: active ? '#e8d5f8' : 'transparent',
@@ -45,14 +48,14 @@ export default function NavBar() {
             }}
           >
             <span className="text-[18px] leading-none">{icon}</span>
-            <span className="text-[9px] font-bold whitespace-nowrap">{label}</span>
+            <span className="text-[9px] font-bold truncate w-full text-center">{label}</span>
           </Link>
         );
       })}
       <button
         type="button"
         onClick={handleLogout}
-        className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-[10px] transition-all"
+        className="flex flex-col items-center gap-0.5 py-1.5 rounded-[10px] transition-all flex-1 min-w-0"
         style={{ color: '#9a8aaa' }}
       >
         <span className="text-[18px] leading-none">🚪</span>

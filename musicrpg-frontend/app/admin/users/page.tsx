@@ -118,80 +118,79 @@ export default function AdminUsersPage() {
       )}
 
       {!loading && !error && users.length > 0 && (
-        <div className="rounded-[14px] overflow-hidden border-2" style={{ borderColor: '#bae6fd' }}>
-          <table className="w-full text-xs">
-            <thead>
-              <tr style={{ background: '#e0f2fe', color: '#0284c7' }}>
-                <th className="text-left px-4 py-2.5 font-bold">ユーザー名</th>
-                <th className="text-left px-4 py-2.5 font-bold hidden sm:table-cell">登録日</th>
-                <th className="text-left px-4 py-2.5 font-bold hidden sm:table-cell">最終ログイン</th>
-                <th className="text-center px-4 py-2.5 font-bold">権限</th>
-                <th className="px-4 py-2.5"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user, i) => (
-                <tr
-                  key={user.id}
-                  style={{
-                    background: i % 2 === 0 ? '#ffffff' : '#f0f9ff',
-                    borderTop: '1px solid #e0f2fe',
-                  }}
-                >
-                  <td className="px-4 py-3 font-bold" style={{ color: '#0c4a6e' }}>
-                    @{user.username}
-                    {!user.is_active && (
-                      <span
-                        className="ml-2 text-[10px] px-1.5 py-0.5 rounded-full"
-                        style={{ background: '#fee2e2', color: '#b91c1c' }}
-                      >
-                        無効
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 hidden sm:table-cell" style={{ color: '#64748b' }}>
-                    {new Date(user.date_joined).toLocaleDateString('ja-JP')}
-                  </td>
-                  <td className="px-4 py-3 hidden sm:table-cell" style={{ color: '#64748b' }}>
-                    {user.last_login
-                      ? new Date(user.last_login).toLocaleString('ja-JP')
-                      : '—'}
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    {user.is_staff ? (
-                      <span
-                        className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                        style={{ background: '#dbeafe', color: '#1d4ed8' }}
-                      >
-                        管理者
-                      </span>
-                    ) : (
-                      <span
-                        className="text-[10px] px-2 py-0.5 rounded-full"
-                        style={{ background: '#f1f5f9', color: '#94a3b8' }}
-                      >
-                        一般
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <button
-                      onClick={() => handleReset(user)}
-                      disabled={resetting === user.id}
-                      className="text-[11px] font-bold px-3 py-1.5 rounded-[8px] transition-all disabled:opacity-50"
-                      style={{
-                        background: '#fff7ed',
-                        color: '#c2410c',
-                        border: '1.5px solid #fed7aa',
-                      }}
-                    >
-                      {resetting === user.id ? '処理中...' : 'PW リセット'}
-                    </button>
-                  </td>
+        /* 横スクロール対応ラッパー */
+        <div className="overflow-x-auto w-full">
+          <div className="rounded-[14px] overflow-hidden border-2" style={{ borderColor: '#bae6fd' }}>
+            <table className="w-full text-xs" style={{ minWidth: '480px' }}>
+              <thead>
+                <tr style={{ background: '#e0f2fe', color: '#0284c7' }}>
+                  <th className="text-left px-4 py-2.5 font-bold">ユーザー名</th>
+                  <th className="text-left px-4 py-2.5 font-bold hidden sm:table-cell">登録日</th>
+                  <th className="text-left px-4 py-2.5 font-bold hidden sm:table-cell">最終ログイン</th>
+                  <th className="text-center px-4 py-2.5 font-bold">権限</th>
+                  <th className="px-4 py-2.5"></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {users.map((user, i) => (
+                  <tr
+                    key={user.id}
+                    style={{
+                      background: i % 2 === 0 ? '#ffffff' : '#f0f9ff',
+                      borderTop: '1px solid #e0f2fe',
+                    }}
+                  >
+                    <td className="px-4 py-3 font-bold" style={{ color: '#0c4a6e' }}>
+                      @{user.username}
+                      {!user.is_active && (
+                        <span
+                          className="ml-2 text-[10px] px-1.5 py-0.5 rounded-full"
+                          style={{ background: '#fee2e2', color: '#b91c1c' }}
+                        >
+                          無効
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 hidden sm:table-cell" style={{ color: '#64748b' }}>
+                      {new Date(user.date_joined).toLocaleDateString('ja-JP')}
+                    </td>
+                    <td className="px-4 py-3 hidden sm:table-cell" style={{ color: '#64748b' }}>
+                      {user.last_login
+                        ? new Date(user.last_login).toLocaleString('ja-JP')
+                        : '—'}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      {user.is_staff ? (
+                        <span
+                          className="text-[10px] px-1.5 py-0.5 rounded-full font-bold"
+                          style={{ background: '#fef3c7', color: '#92400e' }}
+                        >
+                          管理者
+                        </span>
+                      ) : (
+                        <span
+                          className="text-[10px] px-1.5 py-0.5 rounded-full"
+                          style={{ background: '#e0f2fe', color: '#0284c7' }}
+                        >
+                          一般
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <button
+                        onClick={() => handleReset(user)}
+                        disabled={resetting === user.id}
+                        className="text-[10px] px-2.5 py-1 rounded-[6px] border transition-all disabled:opacity-50"
+                        style={{ borderColor: '#bae6fd', color: '#0284c7', background: '#f0f9ff' }}
+                      >
+                        {resetting === user.id ? '処理中...' : 'PW リセット'}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </>

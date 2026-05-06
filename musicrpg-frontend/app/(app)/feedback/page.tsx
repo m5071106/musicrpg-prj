@@ -24,16 +24,18 @@ export default function FeedbackPage() {
   }
 
   return (
-    <div className="min-h-dvh px-4 py-6 pb-24 max-w-lg mx-auto" style={{ background: 'var(--bg)' }}>
-      <h1
-        className="text-xl font-bold mb-1"
-        style={{ color: 'var(--purple)', fontFamily: 'var(--font-dot-gothic), monospace' }}
-      >
-        💬 フィードバック
-      </h1>
-      <p className="text-xs mb-6" style={{ color: 'var(--dim)' }}>
-        気になったこと・改善してほしいことを自由に書いてください
-      </p>
+    <div className="flex flex-col gap-4">
+      <div>
+        <h1
+          className="text-xl font-bold mb-1"
+          style={{ color: 'var(--purple)', fontFamily: 'var(--font-dot-gothic), monospace' }}
+        >
+          💬 フィードバック
+        </h1>
+        <p className="text-xs" style={{ color: 'var(--dim)' }}>
+          気になったこと・改善してほしいことを自由に書いてください
+        </p>
+      </div>
 
       {status === 'done' ? (
         <div

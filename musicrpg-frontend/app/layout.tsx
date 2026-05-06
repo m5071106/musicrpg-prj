@@ -31,6 +31,8 @@ export const viewport: Viewport = {
   themeColor: '#b06ee0',
   width: 'device-width',
   initialScale: 1,
+  minimumScale: 1,
+  maximumScale: 1,
 };
 
 export default function RootLayout({
@@ -40,7 +42,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja" className={`${dotGothic.variable} ${notoSansJP.variable}`}>
-      <body>{children}</body>
+      <body className="overflow-x-hidden">{children}</body>
     </html>
   );
 }

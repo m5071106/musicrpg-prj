@@ -20,12 +20,19 @@ export default function RadarChart({
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+
+    // 親要素の幅に合わせてキャンバスサイズを動的に決定（最大 280px）
+    const parentWidth = canvas.parentElement?.clientWidth ?? 280;
+    const size = Math.min(parentWidth, 280);
+    canvas.width = size;
+    canvas.height = Math.round(size * (230 / 280));
+
     const ctx = canvas.getContext('2d')!;
     const W = canvas.width;
     const H = canvas.height;
     const cx = W / 2;
-    const cy = H / 2 + 8;
-    const r = 76;
+    const cy = H / 2 + Math.round(H * 0.035);
+    const r = Math.round(W * 0.271); // 76 / 280 ≈ 0.271
     const n = 5;
 
     ctx.clearRect(0, 0, W, H);
@@ -84,16 +91,25 @@ export default function RadarChart({
     drawPoly(statsToArray(stats), 'rgba(91,200,232,0.28)', '#5bc8e8');
 
     // Labels
-    ctx.font = '11px DotGothic16, monospace';
+    const fontSize = Math.max(9, Math.round(W * 0.039)); // 11 / 280 ≈ 0.039
+    ctx.font = `${fontSize}px DotGothic16, monospace`;
     ctx.fillStyle = '#9a8aaa';
     ctx.textAlign = 'center';
+    const labelOffset = Math.round(W * 0.064); // 18 / 280 ≈ 0.064
     angles.forEach((a, i) => {
-      const labelR = r + 18;
+      const labelR = r + labelOffset;
       const lx = cx + Math.cos(a) * labelR;
       const ly = cy + Math.sin(a) * labelR + 4;
       ctx.fillText(LABELS[i], lx, ly);
     });
   }, [stats, compareStats]);
 
-  return <canvas ref={canvasRef} width={280} height={230} />;
+  return (
+    <canvas
+      ref={canvasRef}
+      width={280}
+      height={230}
+      style={{ maxWidth: '100%', height: 'auto' }}
+    />
+  );
 }

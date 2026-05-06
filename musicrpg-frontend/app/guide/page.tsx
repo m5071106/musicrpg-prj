@@ -99,213 +99,201 @@ export default async function GuidePage({ searchParams }: Props) {
 
   return (
     <div
-      className="min-h-dvh px-4 py-6 max-w-lg mx-auto"
+      className="min-h-dvh overflow-x-hidden w-full"
       style={{ background: 'var(--bg)', fontFamily: 'var(--font-noto-sans-jp), sans-serif' }}
     >
-      {/* ヘッダー */}
-      <div className="text-center mb-8">
-        {isWelcome ? (
-          <>
-            <p className="text-3xl mb-1">🎉</p>
-            <p
-              className="text-2xl font-bold mb-1"
-              style={{ color: 'var(--purple)', fontFamily: 'var(--font-dot-gothic), monospace' }}
-            >
-              登録完了！
-            </p>
-            <p className="text-sm" style={{ color: 'var(--dim)' }}>
-              はじめに使い方を確認しましょう
-            </p>
-          </>
-        ) : (
-          <>
-            <p
-              className="text-3xl font-bold mb-1"
-              style={{ color: 'var(--purple)', fontFamily: 'var(--font-dot-gothic), monospace' }}
-            >
-              🎵 使い方ガイド
-            </p>
-            <p className="text-sm" style={{ color: 'var(--dim)' }}>
-              Musician RPG Card の基本的な使い方
-            </p>
-          </>
-        )}
-      </div>
+      <div className="px-4 py-6 max-w-lg mx-auto w-full">
+        {/* ヘッダー */}
+        <div className="text-center mb-8">
+          {isWelcome ? (
+            <>
+              <p className="text-3xl mb-1">🎉</p>
+              <p
+                className="text-2xl font-bold mb-1"
+                style={{ color: 'var(--purple)', fontFamily: 'var(--font-dot-gothic), monospace' }}
+              >
+                登録完了！
+              </p>
+              <p className="text-sm" style={{ color: 'var(--dim)' }}>
+                はじめに使い方を確認しましょう
+              </p>
+            </>
+          ) : (
+            <>
+              <p
+                className="text-3xl font-bold mb-1"
+                style={{ color: 'var(--purple)', fontFamily: 'var(--font-dot-gothic), monospace' }}
+              >
+                🎵 使い方ガイド
+              </p>
+              <p className="text-sm" style={{ color: 'var(--dim)' }}>
+                Musician RPG Card の基本的な使い方
+              </p>
+            </>
+          )}
+        </div>
 
-      {/* コアコンセプト */}
-      <div
-        className="rounded-[18px] border-2 p-4 mb-6 text-center"
-        style={{
-          background: 'linear-gradient(135deg, #f5eeff, #fff0f6)',
-          borderColor: 'var(--border)',
-          boxShadow: '0 3px 0 #e8c9f0',
-        }}
-      >
-        <p
-          className="text-base font-bold leading-relaxed"
-          style={{ color: 'var(--purple)', fontFamily: 'var(--font-dot-gothic), monospace' }}
+        {/* コアコンセプト */}
+        <div
+          className="rounded-[18px] border-2 p-4 mb-6 text-center"
+          style={{
+            background: 'linear-gradient(135deg, #f5eeff, #fff0f6)',
+            borderColor: 'var(--border)',
+            boxShadow: '0 3px 0 #e8c9f0',
+          }}
         >
-          初対面のミュージシャンと
-          <br />
-          <span style={{ color: 'var(--pink)' }}>10秒で</span>
-          セッション曲を決めよう
-        </p>
-        <p className="text-xs mt-2" style={{ color: 'var(--dim)' }}>
-          QRを見せ合うだけで共通曲がわかる
-        </p>
-      </div>
-
-      {/* ステップ */}
-      <p
-        className="text-xs font-bold mb-3"
-        style={{ color: 'var(--dim)', fontFamily: 'var(--font-dot-gothic), monospace' }}
-      >
-        STEP BY STEP
-      </p>
-      <ol className="flex flex-col gap-3 mb-8">
-        {STEPS.map((step) => (
-          <li
-            key={step.number}
-            className="rounded-[16px] border-2 p-4"
-            style={{
-              background: step.bg,
-              borderColor: step.border,
-            }}
+          <p
+            className="text-base font-bold leading-relaxed"
+            style={{ color: 'var(--purple)', fontFamily: 'var(--font-dot-gothic), monospace' }}
           >
-            <div className="flex items-start gap-3">
-              <div className="flex flex-col items-center shrink-0">
-                <span
-                  className="text-[10px] font-bold leading-none mb-1"
-                  style={{ color: step.color, fontFamily: 'var(--font-dot-gothic), monospace' }}
-                >
-                  {step.number}
-                </span>
-                <span className="text-2xl leading-none">{step.icon}</span>
+            初対面のミュージシャンと
+            <br />
+            <span style={{ color: 'var(--pink)' }}>10秒で</span>
+            セッション曲を決めよう
+          </p>
+          <p className="text-xs mt-2" style={{ color: 'var(--dim)' }}>
+            QRを見せ合うだけで共通曲がわかる
+          </p>
+        </div>
+
+        {/* ステップ */}
+        <p
+          className="text-xs font-bold mb-3"
+          style={{ color: 'var(--dim)', fontFamily: 'var(--font-dot-gothic), monospace' }}
+        >
+          STEP BY STEP
+        </p>
+        <ol className="flex flex-col gap-3 mb-8">
+          {STEPS.map((step) => (
+            <li
+              key={step.number}
+              className="rounded-[16px] border-2 p-4"
+              style={{
+                background: step.bg,
+                borderColor: step.border,
+              }}
+            >
+              <div className="flex items-start gap-3">
+                <div className="flex flex-col items-center shrink-0">
+                  <span
+                    className="text-[10px] font-bold leading-none mb-1"
+                    style={{ color: step.color, fontFamily: 'var(--font-dot-gothic), monospace' }}
+                  >
+                    {step.number}
+                  </span>
+                  <span className="text-2xl leading-none">{step.icon}</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p
+                    className="font-bold text-sm mb-1.5"
+                    style={{ color: step.color }}
+                  >
+                    {step.title}
+                  </p>
+                  <ul className="flex flex-col gap-1">
+                    {step.lines.map((line) => (
+                      <li
+                        key={line}
+                        className="text-xs flex gap-1.5 items-start"
+                        style={{ color: '#3a2a4a' }}
+                      >
+                        <span className="mt-0.5 shrink-0" style={{ color: step.color }}>▸</span>
+                        <span>{line}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
-              <div className="flex-1">
-                <p
-                  className="font-bold text-sm mb-1.5"
-                  style={{ color: step.color }}
-                >
-                  {step.title}
-                </p>
-                <ul className="flex flex-col gap-1">
-                  {step.lines.map((line) => (
-                    <li
-                      key={line}
-                      className="text-xs flex gap-1.5 items-start"
-                      style={{ color: '#3a2a4a' }}
-                    >
-                      <span className="mt-0.5 shrink-0" style={{ color: step.color }}>▸</span>
-                      <span>{line}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+            </li>
+          ))}
+        </ol>
+
+        {/* FAQ */}
+        <p
+          className="text-xs font-bold mb-3"
+          style={{ color: 'var(--dim)', fontFamily: 'var(--font-dot-gothic), monospace' }}
+        >
+          よくある質問
+        </p>
+        <div className="flex flex-col gap-3 mb-8">
+          {FAQ.map((item) => (
+            <div
+              key={item.q}
+              className="rounded-[16px] border-2 p-4"
+              style={{ background: 'var(--panel)', borderColor: 'var(--border)', boxShadow: '0 2px 0 #e8c9f0' }}
+            >
+              <p className="text-sm font-bold mb-1.5" style={{ color: 'var(--purple)' }}>
+                Q. {item.q}
+              </p>
+              <p className="text-xs leading-relaxed" style={{ color: 'var(--text)' }}>
+                {item.a}
+              </p>
             </div>
-          </li>
-        ))}
-      </ol>
+          ))}
+        </div>
 
-      {/* FAQ */}
-      <p
-        className="text-xs font-bold mb-3"
-        style={{ color: 'var(--dim)', fontFamily: 'var(--font-dot-gothic), monospace' }}
-      >
-        よくある質問
-      </p>
-      <div className="flex flex-col gap-3 mb-8">
-        {FAQ.map((item) => (
-          <div
-            key={item.q}
-            className="rounded-[16px] border-2 p-4"
-            style={{ background: 'var(--panel)', borderColor: 'var(--border)', boxShadow: '0 2px 0 #e8c9f0' }}
-          >
-            <p className="text-sm font-bold mb-1.5" style={{ color: 'var(--purple)' }}>
-              Q. {item.q}
-            </p>
-            <p className="text-xs leading-relaxed" style={{ color: 'var(--text)' }}>
-              {item.a}
-            </p>
-          </div>
-        ))}
-      </div>
-
-      {/* ホーム画面に追加 */}
-      <p
-        className="text-xs font-bold mb-3"
-        style={{ color: 'var(--dim)', fontFamily: 'var(--font-dot-gothic), monospace' }}
-      >
-        もっと便利に使う
-      </p>
-      <div
-        className="rounded-[18px] border-2 p-4 mb-8"
-        style={{ background: 'var(--panel)', borderColor: 'var(--border)', boxShadow: '0 2px 0 #e8c9f0' }}
-      >
-        <p className="text-sm font-bold mb-1" style={{ color: 'var(--purple)' }}>
-          📲 ホーム画面に追加するとアプリとして使えます
+        {/* ホーム画面に追加 */}
+        <p
+          className="text-xs font-bold mb-3"
+          style={{ color: 'var(--dim)', fontFamily: 'var(--font-dot-gothic), monospace' }}
+        >
+          もっと便利に使う
         </p>
-        <p className="text-xs mb-3" style={{ color: 'var(--dim)' }}>
-          インストール不要・ブラウザのバーが消えてアプリそっくりな見た目になります
-        </p>
-        <div className="flex flex-col gap-2">
-          <div
-            className="rounded-[12px] p-3"
-            style={{ background: '#f0fdf4', border: '1.5px solid #a8e6b0' }}
-          >
-            <p className="text-xs font-bold mb-1" style={{ color: '#3a7d50' }}>🍎 iPhone の場合（Safari で開く）</p>
-            <ol className="flex flex-col gap-0.5">
-              {[
-                '画面下の 共有ボタン（四角＋上矢印）をタップ',
-                '「ホーム画面に追加」をタップ',
-                '右上の「追加」をタップして完了',
-              ].map((step, i) => (
-                <li key={i} className="text-xs flex gap-1.5" style={{ color: '#3a2a4a' }}>
-                  <span style={{ color: '#3a7d50', fontWeight: 700, flexShrink: 0 }}>{i + 1}.</span>
-                  <span>{step}</span>
-                </li>
-              ))}
-            </ol>
-          </div>
-          <div
-            className="rounded-[12px] p-3"
-            style={{ background: '#edf6ff', border: '1.5px solid #a8cef5' }}
-          >
-            <p className="text-xs font-bold mb-1" style={{ color: '#1a5fa8' }}>🤖 Android の場合（Chrome で開く）</p>
-            <ol className="flex flex-col gap-0.5">
-              {[
-                '右上の「⋮」メニューをタップ',
-                '「ホーム画面に追加」または「アプリをインストール」をタップ',
-                '「追加」または「インストール」をタップして完了',
-              ].map((step, i) => (
-                <li key={i} className="text-xs flex gap-1.5" style={{ color: '#3a2a4a' }}>
-                  <span style={{ color: '#1a5fa8', fontWeight: 700, flexShrink: 0 }}>{i + 1}.</span>
-                  <span>{step}</span>
-                </li>
-              ))}
-            </ol>
+        <div
+          className="rounded-[18px] border-2 p-4 mb-8"
+          style={{ background: 'var(--panel)', borderColor: 'var(--border)', boxShadow: '0 2px 0 #e8c9f0' }}
+        >
+          <p className="text-sm font-bold mb-1" style={{ color: 'var(--purple)' }}>
+            📲 ホーム画面に追加するとアプリとして使えます
+          </p>
+          <p className="text-xs mb-3" style={{ color: 'var(--dim)' }}>
+            インストール不要・ブラウザのバーが消えてアプリそっくりな見た目になります
+          </p>
+          <div className="flex flex-col gap-2">
+            <div
+              className="rounded-[12px] p-3"
+              style={{ background: '#f0fdf4', border: '1.5px solid #a8e6b0' }}
+            >
+              <p className="text-xs font-bold mb-1" style={{ color: '#3a7d50' }}>🍎 iPhone の場合（Safari で開く）</p>
+              <ol className="flex flex-col gap-0.5">
+                {[
+                  '画面下の 共有ボタン（四角＋上矢印）をタップ',
+                  '「ホーム画面に追加」をタップ',
+                  '右上の「追加」をタップして完了',
+                ].map((step, i) => (
+                  <li key={i} className="text-xs flex gap-1.5" style={{ color: '#3a2a4a' }}>
+                    <span style={{ color: '#3a7d50', fontWeight: 700, flexShrink: 0 }}>{i + 1}.</span>
+                    <span>{step}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+            <div
+              className="rounded-[12px] p-3"
+              style={{ background: '#edf6ff', border: '1.5px solid #a8cef5' }}
+            >
+              <p className="text-xs font-bold mb-1" style={{ color: '#1a5fa8' }}>🤖 Android の場合（Chrome で開く）</p>
+              <ol className="flex flex-col gap-0.5">
+                {[
+                  '右上の「⋮」メニューをタップ',
+                  '「ホーム画面に追加」または「アプリをインストール」をタップ',
+                  '「追加」または「インストール」をタップして完了',
+                ].map((step, i) => (
+                  <li key={i} className="text-xs flex gap-1.5" style={{ color: '#3a2a4a' }}>
+                    <span style={{ color: '#1a5fa8', fontWeight: 700, flexShrink: 0 }}>{i + 1}.</span>
+                    <span>{step}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* CTAボタン */}
-      <div className="flex flex-col gap-3">
-        {isWelcome ? (
-          <Link
-            href="/qr"
-            className="block w-full py-3.5 rounded-[14px] font-bold text-white text-center text-sm active:translate-y-0.5 transition-transform"
-            style={{
-              background: 'linear-gradient(135deg, var(--purple), var(--pink))',
-              boxShadow: '0 3px 0 #c87ee0',
-              fontFamily: 'var(--font-dot-gothic), monospace',
-            }}
-          >
-            🎴 QRコード画面へ進む →
-          </Link>
-        ) : (
-          <>
+        {/* CTAボタン */}
+        <div className="flex flex-col gap-3">
+          {isWelcome ? (
             <Link
-              href="/login"
+              href="/qr"
               className="block w-full py-3.5 rounded-[14px] font-bold text-white text-center text-sm active:translate-y-0.5 transition-transform"
               style={{
                 background: 'linear-gradient(135deg, var(--purple), var(--pink))',
@@ -313,17 +301,31 @@ export default async function GuidePage({ searchParams }: Props) {
                 fontFamily: 'var(--font-dot-gothic), monospace',
               }}
             >
-              さっそく始める →
+              🎴 QRコード画面へ進む →
             </Link>
-            <Link
-              href="/login"
-              className="block w-full py-3 rounded-[14px] font-bold text-center text-sm border-2 active:translate-y-0.5 transition-transform"
-              style={{ borderColor: 'var(--border)', color: 'var(--dim)' }}
-            >
-              ログイン画面に戻る
-            </Link>
-          </>
-        )}
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="block w-full py-3.5 rounded-[14px] font-bold text-white text-center text-sm active:translate-y-0.5 transition-transform"
+                style={{
+                  background: 'linear-gradient(135deg, var(--purple), var(--pink))',
+                  boxShadow: '0 3px 0 #c87ee0',
+                  fontFamily: 'var(--font-dot-gothic), monospace',
+                }}
+              >
+                さっそく始める →
+              </Link>
+              <Link
+                href="/login"
+                className="block w-full py-3 rounded-[14px] font-bold text-center text-sm border-2 active:translate-y-0.5 transition-transform"
+                style={{ borderColor: 'var(--border)', color: 'var(--dim)' }}
+              >
+                ログイン画面に戻る
+              </Link>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
