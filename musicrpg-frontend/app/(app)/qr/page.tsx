@@ -41,7 +41,14 @@ export default function QRPage() {
       ? encodeQR(
           username,
           profile.instrument,
-          profile.songs.map(s => ({ title: s.title, stars: s.stars }))
+          profile.songs.map(s => ({ title: s.title, stars: s.stars })),
+          {
+            stat_tempo: profile.stat_tempo,
+            stat_emotion: profile.stat_emotion,
+            stat_range: profile.stat_range,
+            stat_effort: profile.stat_effort,
+            stat_stage: profile.stat_stage,
+          }
         )
       : '';
 
