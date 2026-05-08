@@ -120,12 +120,13 @@ function CompareView({
     stat_stage: myProfile.stat_stage,
   };
 
+  // QRコードにデコードされた相手の実際のステータスを使用する
   const partnerStats: Stats = {
-    stat_tempo: 3,
-    stat_emotion: 3,
-    stat_range: 3,
-    stat_effort: 3,
-    stat_stage: 3,
+    stat_tempo: partner.stats.stat_tempo,
+    stat_emotion: partner.stats.stat_emotion,
+    stat_range: partner.stats.stat_range,
+    stat_effort: partner.stats.stat_effort,
+    stat_stage: partner.stats.stat_stage,
   };
 
   function toggleSong(title: string) {
@@ -181,77 +182,53 @@ function CompareView({
       <div
         className="rounded-[18px] border-2 p-4"
         style={{
-          background: commonSongs.length > 0 ? '#f0fdf4' : 'var(--panel)',
-          borderColor: commonSongs.length > 0 ? '#6dcc7f' : 'var(--border)',
-          boxShadow: commonSongs.length > 0 ? '0 3px 0 #a8e6b0' : '0 3px 0 #e8c9f0',
+          background: 'var(--panel)',
+          borderColor: 'var(--border)',
+          boxShadow: '0 3px 0 #e8c9f0',
         }}
       >
-        <div className="flex items-center justify-between mb-3">
-          <p
-            className="text-sm font-bold"
-            style={{
-              color: commonSongs.length > 0 ? '#2d7a3a' : 'var(--dim)',
-              fontFamily: 'var(--font-dot-gothic), monospace',
-            }}
-          >
-            {commonSongs.length > 0
-              ? `✅ 一緒にできる曲 ${commonSongs.length}曲`
-              : '😢 共通の曲なし'}
+        <p className="text-xs font-bold mb-3" style={{ color: 'var(--dim)' }}>
+          🎵 共通曲 ({commonSongs.length}曲)
+        </p>
+        {commonSongs.length === 0 ? (
+          <p className="text-sm text-center py-4" style={{ color: 'var(--dim)' }}>
+            共通曲がありません
           </p>
-          {selected.size > 0 && (
-            <span
-              className="text-xs font-bold px-2 py-0.5 rounded-full"
-              style={{ background: '#6dcc7f', color: '#fff' }}
-            >
-              {selected.size}曲選択中
-            </span>
-          )}
-        </div>
-
-        {commonSongs.length > 0 ? (
-          <>
-            <ul className="flex flex-col gap-2 mb-3">
-              {commonSongs.map(song => {
-                const isSelected = selected.has(song.title);
-                return (
-                  <li key={song.title}>
-                    <button
-                      type="button"
-                      onClick={() => toggleSong(song.title)}
-                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[12px] border-2 transition-all active:scale-[0.98] text-left"
-                      style={{
-                        borderColor: isSelected ? '#6dcc7f' : '#c8e6c9',
-                        background: isSelected ? '#d4edda' : '#f8fdf8',
-                      }}
-                    >
-                      <span className="text-lg">{isSelected ? '✅' : '🎵'}</span>
-                      <span className="flex-1 font-bold text-sm" style={{ color: '#2d4a30' }}>
-                        {song.title}
-                      </span>
-                      <span style={{ color: '#f5a623' }}>
-                        {'★'.repeat(song.stars)}{'☆'.repeat(5 - song.stars)}
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-            <button
-              type="button"
-              onClick={handleSaveSession}
-              disabled={selected.size === 0 || saved}
-              className="w-full py-2.5 rounded-[12px] font-bold text-white text-sm active:translate-y-0.5 disabled:opacity-40 transition-all"
-              style={{ background: saved ? '#6dcc7f' : '#2d7a3a' }}
-            >
-              {saved ? '✓ セッション記録済み！' : `📝 選択した${selected.size > 0 ? `${selected.size}曲を` : ''}セッション記録`}
-            </button>
-          </>
         ) : (
-          <div className="py-4">
-            <p className="text-sm text-center" style={{ color: 'var(--dim)' }}>
-              曲リストを追加すると共通曲が見つかりやすくなります
-            </p>
-          </div>
+          <ul className="flex flex-col gap-2">
+            {commonSongs.map(song => (
+              <li key={song.title}>
+                <button
+                  type="button"
+                  onClick={() => toggleSong(song.title)}
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-[10px] border-2 transition-all active:translate-y-0.5 text-left"
+                  style={{
+                    borderColor: selected.has(song.title) ? 'var(--purple)' : 'var(--border)',
+                    background: selected.has(song.title) ? 'var(--lavender)' : '#fdfaff',
+                  }}
+                >
+                  <span className="text-sm">{selected.has(song.title) ? '✓' : '○'}</span>
+                  <span className="flex-1 text-sm truncate" style={{ color: 'var(--text)' }}>
+                    {song.title}
+                  </span>
+                  <span className="text-xs" style={{ color: 'var(--dim)' }}>
+                    {'★'.repeat(song.stars)}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        {commonSongs.length > 0 && (
+          <button
+            type="button"
+            onClick={handleSaveSession}
+            disabled={selected.size === 0}
+            className="w-full mt-3 py-2.5 rounded-[12px] font-bold text-white text-sm active:translate-y-0.5 disabled:opacity-40"
+            style={{ background: 'linear-gradient(135deg, var(--purple), var(--cyan))' }}
+          >
+            {saved ? '✓ 保存しました！' : `🎮 ${selected.size}曲をセッション記録`}
+          </button>
         )}
       </div>
 
@@ -260,126 +237,100 @@ function CompareView({
         className="rounded-[18px] border-2 p-4"
         style={{ background: 'var(--panel)', borderColor: 'var(--border)', boxShadow: '0 3px 0 #e8c9f0' }}
       >
-        <div className="flex justify-around mb-2">
-          <span className="flex items-center gap-1.5 text-xs font-bold" style={{ color: '#5bc8e8' }}>
-            <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: '#5bc8e8' }} />
-            自分
-          </span>
-          <span className="flex items-center gap-1.5 text-xs font-bold" style={{ color: '#ff7eb3' }}>
-            <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: '#ff7eb3' }} />
-            {partner.username}
-          </span>
-        </div>
-        <div className="flex justify-center">
-          <RadarChart stats={myStats} compareStats={partnerStats} />
-        </div>
+        <p className="text-xs font-bold mb-3" style={{ color: 'var(--dim)' }}>
+          📊 ステータス比較
+        </p>
+        <RadarChart myStats={myStats} partnerStats={partnerStats} />
       </div>
 
-      {/* ③ 相手の曲リスト */}
+      {/* ③ バトルバー */}
       <div
         className="rounded-[18px] border-2 p-4"
         style={{ background: 'var(--panel)', borderColor: 'var(--border)', boxShadow: '0 3px 0 #e8c9f0' }}
       >
         <p className="text-xs font-bold mb-3" style={{ color: 'var(--dim)' }}>
-          {partner.username} の曲リスト（{partner.songs.length}曲）
+          ⚔️ 項目別対決
+        </p>
+        <BattleBars myStats={myStats} partnerStats={partnerStats} partnerName={partner.username} />
+      </div>
+
+      {/* ④ 相手の曲一覧 */}
+      <div
+        className="rounded-[18px] border-2 p-4"
+        style={{ background: 'var(--panel)', borderColor: 'var(--border)', boxShadow: '0 3px 0 #e8c9f0' }}
+      >
+        <p className="text-xs font-bold mb-3" style={{ color: 'var(--dim)' }}>
+          🎶 {partner.username} の曲 ({partner.songs.length}曲)
         </p>
         {partner.songs.length === 0 ? (
-          <p className="text-sm" style={{ color: 'var(--dim)' }}>曲情報なし</p>
+          <p className="text-sm text-center py-4" style={{ color: 'var(--dim)' }}>
+            曲情報がありません
+          </p>
         ) : (
-          <ul className="flex flex-wrap gap-1.5">
-            {partner.songs.map(s => (
+          <ul className="flex flex-col gap-1.5">
+            {partner.songs.map(song => (
               <li
-                key={s.title}
-                className="text-xs px-2.5 py-1 rounded-full border"
-                style={{
-                  borderColor: myProfile.songs.some(
-                    ms => ms.title.toLowerCase() === s.title.toLowerCase()
-                  )
-                    ? '#6dcc7f'
-                    : 'var(--border)',
-                  background: myProfile.songs.some(
-                    ms => ms.title.toLowerCase() === s.title.toLowerCase()
-                  )
-                    ? '#f0fdf4'
-                    : 'var(--lavender)',
-                  color: myProfile.songs.some(
-                    ms => ms.title.toLowerCase() === s.title.toLowerCase()
-                  )
-                    ? '#2d7a3a'
-                    : 'var(--text)',
-                }}
+                key={song.title}
+                className="flex items-center gap-2 px-3 py-2 rounded-[10px]"
+                style={{ background: 'var(--lavender)' }}
               >
-                {s.title}
+                <span className="flex-1 text-sm truncate" style={{ color: 'var(--text)' }}>
+                  {song.title}
+                </span>
+                <span className="text-xs" style={{ color: 'var(--purple)' }}>
+                  {'★'.repeat(song.stars)}
+                </span>
               </li>
             ))}
           </ul>
         )}
       </div>
-
-      {/* ④ バトルバー */}
-      <div
-        className="rounded-[18px] border-2 p-4"
-        style={{ background: 'var(--panel)', borderColor: 'var(--border)', boxShadow: '0 3px 0 #e8c9f0' }}
-      >
-        <p className="text-xs font-bold mb-3" style={{ color: 'var(--dim)' }}>
-          ステータス比較
-        </p>
-        <BattleBars myStats={myStats} senpaiStats={partnerStats} />
-      </div>
     </div>
   );
 }
 
-// ── ページ本体 ────────────────────────────────────────
+// ── メインページ ──────────────────────────────────────
 export default function ComparePage() {
-  const { data: profile, isLoading } = useSWR<MusicProfile>(
+  const { data: myProfile } = useSWR<MusicProfile>(
     '/music/profile/',
     (p: string) => apiFetch<MusicProfile>(p)
   );
   const currentPartner = useAppStore(s => s.currentPartner);
   const setCurrentPartner = useAppStore(s => s.setCurrentPartner);
   const [partners, setPartners] = useState<PartnerProfile[]>([]);
-  const [activePartner, setActivePartner] = useState<PartnerProfile | null>(null);
 
   useEffect(() => {
     setPartners(getPartners());
   }, []);
 
-  useEffect(() => {
-    if (currentPartner) setActivePartner(currentPartner);
-  }, [currentPartner]);
+  const handleSelect = (p: PartnerProfile) => {
+    setCurrentPartner(p);
+  };
 
-  function handleBack() {
-    setActivePartner(null);
+  const handleBack = () => {
     setCurrentPartner(null);
-  }
-
-  if (isLoading || !profile) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <p style={{ color: 'var(--dim)', fontFamily: 'var(--font-dot-gothic), monospace' }}>
-          Loading...
-        </p>
-      </div>
-    );
-  }
-
-  if (activePartner) {
-    return <CompareView myProfile={profile} partner={activePartner} onBack={handleBack} />;
-  }
+  };
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-4">
       <h1
-        className="text-xl font-bold mb-2"
+        className="text-xl font-bold"
         style={{ color: 'var(--purple)', fontFamily: 'var(--font-dot-gothic), monospace' }}
       >
-        ⚔️ セッション比較
+        🆚 比較
       </h1>
-      <PartnerPicker
-        partners={partners}
-        onSelect={p => { setActivePartner(p); setCurrentPartner(p); }}
-      />
+
+      {!myProfile ? (
+        <p style={{ color: 'var(--dim)' }}>読み込み中...</p>
+      ) : currentPartner ? (
+        <CompareView
+          myProfile={myProfile}
+          partner={currentPartner}
+          onBack={handleBack}
+        />
+      ) : (
+        <PartnerPicker partners={partners} onSelect={handleSelect} />
+      )}
     </div>
   );
 }
