@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { DotGothic16, Noto_Sans_JP } from 'next/font/google';
+import UpdateBanner from '@/components/UpdateBanner';
 import './globals.css';
 
 const dotGothic = DotGothic16({
@@ -42,7 +43,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja" className={`${dotGothic.variable} ${notoSansJP.variable}`}>
-      <body className="overflow-x-hidden">{children}</body>
+      <body className="overflow-x-hidden">
+        {children}
+        <UpdateBanner />
+      </body>
     </html>
   );
 }

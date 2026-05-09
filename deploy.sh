@@ -198,6 +198,7 @@ FRONTEND_IMAGE="$ACR_LOGIN_SERVER/musicrpg-frontend:$DEPLOY_TAG"
 docker build \
   --platform linux/amd64 \
   --build-arg NEXT_PUBLIC_API_BASE_URL="$BACKEND_URL" \
+  --build-arg NEXT_PUBLIC_APP_VERSION="$DEPLOY_TAG" \
   -t "$FRONTEND_IMAGE" \
   ./musicrpg-frontend
 docker push "$FRONTEND_IMAGE"
