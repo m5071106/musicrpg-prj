@@ -33,9 +33,11 @@ export default function LoginPage() {
     }
   }
 
+  const version = process.env.NEXT_PUBLIC_APP_VERSION;
+
   return (
     <div
-      className="min-h-dvh flex flex-col items-center justify-center px-4"
+      className="relative min-h-dvh flex flex-col items-center justify-center px-4"
       style={{ background: 'var(--bg)' }}
     >
       <div
@@ -130,6 +132,14 @@ export default function LoginPage() {
           </button>
         </form>
       </div>
+      {version && version !== 'dev' && (
+        <p
+          className="absolute bottom-2 right-3 text-[10px]"
+          style={{ color: 'var(--dim)', opacity: 0.5 }}
+        >
+          v{version}
+        </p>
+      )}
     </div>
   );
 }
