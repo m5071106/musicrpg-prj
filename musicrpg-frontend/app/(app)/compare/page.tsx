@@ -240,7 +240,7 @@ function CompareView({
         <p className="text-xs font-bold mb-3" style={{ color: 'var(--dim)' }}>
           📊 ステータス比較
         </p>
-        <RadarChart myStats={myStats} partnerStats={partnerStats} />
+        <RadarChart stats={myStats} compareStats={partnerStats} />
       </div>
 
       {/* ③ バトルバー */}
@@ -251,7 +251,7 @@ function CompareView({
         <p className="text-xs font-bold mb-3" style={{ color: 'var(--dim)' }}>
           ⚔️ 項目別対決
         </p>
-        <BattleBars myStats={myStats} partnerStats={partnerStats} partnerName={partner.username} />
+        <BattleBars myStats={myStats} senpaiStats={partnerStats} />
       </div>
 
       {/* ④ 相手の曲一覧 */}
