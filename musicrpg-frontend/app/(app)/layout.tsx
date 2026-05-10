@@ -49,7 +49,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       }}
     >
       <div className="overflow-x-hidden w-full" style={{ background: 'var(--bg)', minHeight: '100dvh' }}>
-        <main className="pb-24 px-4 pt-4 max-w-lg mx-auto w-full">{children}</main>
+        {/* pb-28: 大きくなったナビバー (≈72px) + safe-area-inset-bottom の余裕 */}
+        <main className="pb-28 px-4 pt-4 max-w-lg mx-auto w-full">{children}</main>
         <NavBar />
       </div>
     </SWRConfig>
