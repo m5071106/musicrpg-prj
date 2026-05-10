@@ -2,7 +2,7 @@
   "name": "Musician RPG Card",
   "short_name": "MusicianRPG",
   "description": "演奏家のためのRPGカードアプリ",
-  "start_url": "/qr",
+  "start_url": "/songs",
   "display": "standalone",
   "background_color": "#fffbf4",
   "theme_color": "#b06ee0",
