@@ -51,6 +51,24 @@ export async function apiFetch<T>(
 
 export const fetcher = (path: string) => apiFetch(path);
 
+/**
+ * ユーザーごとに分離された SWR キャッシュを全て削除する。
+ * ログイン・ログアウト時に呼び出し、別アカウントのキャッシュが残らないようにする。
+ */
+function clearAllSWRCaches() {
+  if (typeof window === 'undefined') return;
+  const keysToRemove: string[] = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith('swr-cache-')) {
+      keysToRemove.push(key);
+    }
+  }
+  keysToRemove.forEach((key) => localStorage.removeItem(key));
+  // 旧形式のキャッシュキーも削除
+  localStorage.removeItem('swr-cache');
+}
+
 function storeTokens(data: { access?: string; refresh?: string }, username: string) {
   if (data.access) localStorage.setItem('access_token', data.access);
   if (data.refresh) localStorage.setItem('refresh_token', data.refresh);
@@ -65,6 +83,8 @@ export async function login(username: string, password: string) {
   });
   if (!res.ok) throw new Error(await parseError(res));
   const data = await res.json();
+  // 別アカウントのキャッシュが残っている場合に備えて先にクリアする
+  clearAllSWRCaches();
   storeTokens(data, username);
   return data;
 }
@@ -77,6 +97,8 @@ export async function register(username: string, password1: string, password2: s
   });
   if (!res.ok) throw new Error(await parseError(res));
   const data = await res.json();
+  // 新規登録時も既存キャッシュをクリアする
+  clearAllSWRCaches();
   storeTokens(data, username);
   return data;
 }
@@ -85,7 +107,8 @@ export function logout() {
   localStorage.removeItem('access_token');
   localStorage.removeItem('refresh_token');
   localStorage.removeItem('username');
-  localStorage.removeItem('swr-cache');
+  // ユーザーごとの SWR キャッシュをすべて削除する
+  clearAllSWRCaches();
 }
 
 export function getStoredUsername(): string {
