@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import { apiFetch, getStoredUsername } from '@/lib/api';
-import { encodeQR, decodeQR, savePartner } from '@/lib/localStore';
+import { encodeQR, decodeQR, savePartnerToServer } from '@/lib/localStore';
 import { useAppStore } from '@/store/useAppStore';
 import { INSTRUMENT_EMOJIS, INSTRUMENT_LABELS } from '@/lib/constants';
 import QRDisplay from '@/components/QRDisplay';
@@ -58,7 +58,7 @@ export default function QRPage() {
       const partner = decodeQR(raw);
       if (!partner) return;
       setScanned(true);
-      savePartner(partner);
+      savePartnerToServer(partner, apiFetch);
       setCurrentPartner(partner);
       router.push('/compare');
     },

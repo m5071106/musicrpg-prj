@@ -2,7 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getSessions, getPartners, type SessionRecord } from '@/lib/localStore';
+import { apiFetch } from '@/lib/api';
+import {
+  fetchSessionsFromServer,
+  fetchPartnersFromServer,
+  type SessionRecord,
+} from '@/lib/localStore';
 import { INSTRUMENT_EMOJIS } from '@/lib/constants';
 import { useAppStore } from '@/store/useAppStore';
 import type { PartnerProfile } from '@/lib/localStore';
@@ -17,10 +22,22 @@ export default function HistoryPage() {
   const setCurrentPartner = useAppStore(s => s.setCurrentPartner);
   const [sessions, setSessions] = useState<SessionRecord[]>([]);
   const [partners, setPartners] = useState<PartnerProfile[]>([]);
+  const [loading, setLoading] = useState(true);
 
+  // マウント時にサーバーからセッション履歴とパートナーを取得してデバイス間のデータを同期する
   useEffect(() => {
-    setSessions(getSessions());
-    setPartners(getPartners());
+    let cancelled = false;
+    Promise.all([
+      fetchSessionsFromServer(apiFetch),
+      fetchPartnersFromServer(apiFetch),
+    ]).then(([sessionList, partnerList]) => {
+      if (!cancelled) {
+        setSessions(sessionList);
+        setPartners(partnerList);
+        setLoading(false);
+      }
+    });
+    return () => { cancelled = true; };
   }, []);
 
   function handleRecompare(session: SessionRecord) {
@@ -29,6 +46,14 @@ export default function HistoryPage() {
       setCurrentPartner(p);
       router.push('/compare');
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <p style={{ color: 'var(--dim)' }}>読み込み中...</p>
+      </div>
+    );
   }
 
   return (
