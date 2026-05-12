@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import { apiFetch, getStoredUsername } from '@/lib/api';
-import { encodeQR, decodeQR, savePartnerToServer } from '@/lib/localStore';
+import { encodeQR, decodeQR, savePartner } from '@/lib/localStore';
 import { useAppStore } from '@/store/useAppStore';
 import { INSTRUMENT_EMOJIS, INSTRUMENT_LABELS } from '@/lib/constants';
 import QRDisplay from '@/components/QRDisplay';
@@ -58,7 +58,7 @@ export default function QRPage() {
       const partner = decodeQR(raw);
       if (!partner) return;
       setScanned(true);
-      savePartnerToServer(partner, apiFetch);
+      savePartner(partner);
       setCurrentPartner(partner);
       router.push('/compare');
     },
@@ -126,17 +126,12 @@ export default function QRPage() {
                 >
                   <p className="text-xs" style={{ color: 'var(--purple)' }}>
                     {INSTRUMENT_EMOJIS[profile!.instrument]} {INSTRUMENT_LABELS[profile!.instrument]}
-                    　{Math.min(profile!.songs.length, 20)}曲（全{profile!.songs.length}曲中）
+                    　{profile!.songs.length}曲
                   </p>
                   <p className="text-[10px] mt-1" style={{ color: 'var(--dim)' }}>
-                    {profile!.songs.slice(0, 5).map(s => s.title).join('、')}
-                    {profile!.songs.length > 5 ? `…ほか${profile!.songs.length - 5}曲` : ''}
+                    {profile!.songs.slice(0, 3).map(s => s.title).join('、')}
+                    {profile!.songs.length > 3 ? `…ほか${profile!.songs.length - 3}曲` : ''}
                   </p>
-                  {profile!.songs.length > 20 && (
-                    <p className="text-[10px] mt-1" style={{ color: 'var(--dim)' }}>
-                      ※ QRコードには先頭20曲が含まれます
-                    </p>
-                  )}
                 </div>
               </div>
             </>

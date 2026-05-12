@@ -33,34 +33,3 @@ class Song(models.Model):
 
     def __str__(self):
         return self.title
-
-
-class PartnerRecord(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='partners')
-    username = models.CharField(max_length=150)
-    instrument = models.CharField(max_length=10)
-    songs = models.JSONField(default=list)
-    stats = models.JSONField(default=dict)
-    scanned_at = models.DateTimeField()
-
-    class Meta:
-        ordering = ['-scanned_at']
-        unique_together = [('user', 'username')]
-
-    def __str__(self):
-        return f'{self.user.username} -> {self.username}'
-
-
-class SessionRecord(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sessions')
-    client_id = models.CharField(max_length=64, unique=True)
-    partner_username = models.CharField(max_length=150)
-    partner_instrument = models.CharField(max_length=10)
-    played_songs = models.JSONField(default=list)
-    date = models.DateTimeField()
-
-    class Meta:
-        ordering = ['-date']
-
-    def __str__(self):
-        return f'{self.user.username} x {self.partner_username} ({self.date.date()})'

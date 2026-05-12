@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getSessions, getPartners, syncSessionsFromServer, syncPartnersFromServer, type SessionRecord } from '@/lib/localStore';
-import { apiFetch } from '@/lib/api';
+import { getSessions, getPartners, type SessionRecord } from '@/lib/localStore';
 import { INSTRUMENT_EMOJIS } from '@/lib/constants';
 import { useAppStore } from '@/store/useAppStore';
 import type { PartnerProfile } from '@/lib/localStore';
@@ -22,13 +21,6 @@ export default function HistoryPage() {
   useEffect(() => {
     setSessions(getSessions());
     setPartners(getPartners());
-    Promise.all([
-      syncSessionsFromServer(apiFetch),
-      syncPartnersFromServer(apiFetch),
-    ]).then(() => {
-      setSessions(getSessions());
-      setPartners(getPartners());
-    });
   }, []);
 
   function handleRecompare(session: SessionRecord) {
