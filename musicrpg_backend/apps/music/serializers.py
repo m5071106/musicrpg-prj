@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import MusicProfile, Song
+from .models import MusicProfile, Song, PartnerRecord, SessionRecord
 
 
 class SongSerializer(serializers.ModelSerializer):
@@ -51,3 +51,17 @@ class MusicProfileSerializer(serializers.ModelSerializer):
         if not 1 <= v <= 5:
             raise serializers.ValidationError('1〜5 の値を指定してください')
         return v
+
+
+class PartnerRecordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PartnerRecord
+        fields = ['id', 'username', 'instrument', 'songs', 'stats', 'scanned_at']
+        read_only_fields = ['id']
+
+
+class SessionRecordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SessionRecord
+        fields = ['id', 'client_id', 'partner_username', 'partner_instrument', 'played_songs', 'date']
+        read_only_fields = ['id']
