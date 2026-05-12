@@ -26,7 +26,10 @@ class SongListCreateView(generics.ListCreateAPIView):
         return Song.objects.filter(profile__user=self.request.user)
 
     def perform_create(self, serializer):
+        from rest_framework.exceptions import ValidationError
         profile, _ = MusicProfile.objects.get_or_create(user=self.request.user)
+        if Song.objects.filter(profile=profile).count() >= 50:
+            raise ValidationError('登録できる曲は最大50曲です。不要な曲を削除してから追加してください。')
         serializer.save(profile=profile)
 
 
