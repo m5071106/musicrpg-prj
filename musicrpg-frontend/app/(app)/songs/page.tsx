@@ -74,9 +74,14 @@ export default function SongsPage() {
           />
         </div>
         {error && <p className="text-xs" style={{ color: '#e05555' }}>{error}</p>}
+        {(songs?.length ?? 0) >= 50 && (
+          <p className="text-xs text-center" style={{ color: 'var(--dim)' }}>
+            登録上限（50曲）に達しました。不要な曲を削除してから追加できます。
+          </p>
+        )}
         <button
           type="submit"
-          disabled={adding || !title.trim()}
+          disabled={adding || !title.trim() || (songs?.length ?? 0) >= 50}
           className="w-full py-2 rounded-[12px] font-bold text-white text-sm active:translate-y-0.5 disabled:opacity-50"
           style={{ background: 'var(--purple)' }}
         >
@@ -90,7 +95,7 @@ export default function SongsPage() {
         style={{ background: 'var(--panel)', borderColor: 'var(--border)', boxShadow: '0 3px 0 #e8c9f0' }}
       >
         <p className="text-xs font-bold mb-3" style={{ color: 'var(--dim)' }}>
-          登録曲 ({songs?.length ?? 0}曲)
+          登録曲 ({songs?.length ?? 0} / 50 曲)
         </p>
         {isLoading ? (
           <p className="text-center py-4" style={{ color: 'var(--dim)' }}>Loading...</p>
