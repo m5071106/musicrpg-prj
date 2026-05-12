@@ -6,8 +6,8 @@ import useSWR from 'swr';
 import { apiFetch } from '@/lib/api';
 import { useAppStore } from '@/store/useAppStore';
 import {
-  getPartners,
-  saveSession,
+  fetchPartnersFromServer,
+  saveSessionToServer,
   type PartnerProfile,
   type SessionRecord,
 } from '@/lib/localStore';
@@ -137,7 +137,7 @@ function CompareView({
     });
   }
 
-  function handleSaveSession() {
+  async function handleSaveSession() {
     const session: SessionRecord = {
       id: `${Date.now()}`,
       partnerUsername: partner.username,
@@ -145,7 +145,8 @@ function CompareView({
       playedSongs: Array.from(selected),
       date: new Date().toISOString(),
     };
-    saveSession(session);
+    // ローカルストレージとサーバー両方に保存してデバイス間で同期する
+    await saveSessionToServer(session, apiFetch);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   }
@@ -178,21 +179,35 @@ function CompareView({
         </div>
       </div>
 
-      {/* ① 共通曲（最重要：最上部） */}
+      {/* レーダーチャート比較 */}
       <div
         className="rounded-[18px] border-2 p-4"
-        style={{
-          background: 'var(--panel)',
-          borderColor: 'var(--border)',
-          boxShadow: '0 3px 0 #e8c9f0',
-        }}
+        style={{ background: 'var(--panel)', borderColor: 'var(--border)', boxShadow: '0 3px 0 #e8c9f0' }}
+      >
+        <p className="text-xs font-bold mb-3" style={{ color: 'var(--dim)' }}>ステータス比較</p>
+        <RadarChart stats={myStats} compareStats={partnerStats} />
+      </div>
+
+      {/* バトルバー比較 */}
+      <div
+        className="rounded-[18px] border-2 p-4"
+        style={{ background: 'var(--panel)', borderColor: 'var(--border)', boxShadow: '0 3px 0 #e8c9f0' }}
+      >
+        <p className="text-xs font-bold mb-3" style={{ color: 'var(--dim)' }}>ステータス詳細</p>
+        <BattleBars myStats={myStats} senpaiStats={partnerStats} />
+      </div>
+
+      {/* 共通曲 */}
+      <div
+        className="rounded-[18px] border-2 p-4"
+        style={{ background: 'var(--panel)', borderColor: 'var(--border)', boxShadow: '0 3px 0 #e8c9f0' }}
       >
         <p className="text-xs font-bold mb-3" style={{ color: 'var(--dim)' }}>
-          🎵 共通曲 ({commonSongs.length}曲)
+          共通の曲 ({commonSongs.length}曲)
         </p>
         {commonSongs.length === 0 ? (
           <p className="text-sm text-center py-4" style={{ color: 'var(--dim)' }}>
-            共通曲がありません
+            共通の曲はありません
           </p>
         ) : (
           <ul className="flex flex-col gap-2">
@@ -201,14 +216,14 @@ function CompareView({
                 <button
                   type="button"
                   onClick={() => toggleSong(song.title)}
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-[10px] border-2 transition-all active:translate-y-0.5 text-left"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[12px] border-2 transition-all active:translate-y-0.5 text-left"
                   style={{
-                    borderColor: selected.has(song.title) ? 'var(--purple)' : 'var(--border)',
-                    background: selected.has(song.title) ? 'var(--lavender)' : '#fdfaff',
+                    borderColor: selected.has(song.title) ? 'var(--green)' : 'var(--border)',
+                    background: selected.has(song.title) ? '#f0fdf4' : '#fdfaff',
                   }}
                 >
-                  <span className="text-sm">{selected.has(song.title) ? '✓' : '○'}</span>
-                  <span className="flex-1 text-sm truncate" style={{ color: 'var(--text)' }}>
+                  <span className="text-lg">{selected.has(song.title) ? '✅' : '🎵'}</span>
+                  <span className="flex-1 text-sm font-bold" style={{ color: 'var(--text)' }}>
                     {song.title}
                   </span>
                   <span className="text-xs" style={{ color: 'var(--dim)' }}>
@@ -219,70 +234,21 @@ function CompareView({
             ))}
           </ul>
         )}
+
         {commonSongs.length > 0 && (
           <button
             type="button"
             onClick={handleSaveSession}
-            disabled={selected.size === 0}
-            className="w-full mt-3 py-2.5 rounded-[12px] font-bold text-white text-sm active:translate-y-0.5 disabled:opacity-40"
-            style={{ background: 'linear-gradient(135deg, var(--purple), var(--cyan))' }}
+            disabled={saved || selected.size === 0}
+            className="mt-4 w-full py-3 rounded-[12px] font-bold text-white text-sm transition-all active:translate-y-0.5 disabled:opacity-50"
+            style={{
+              background: saved
+                ? 'var(--green)'
+                : 'linear-gradient(135deg, var(--purple), var(--cyan))',
+            }}
           >
-            {saved ? '✓ 保存しました！' : `🎮 ${selected.size}曲をセッション記録`}
+            {saved ? '✓ 記録しました！' : `🎵 ${selected.size}曲を記録する`}
           </button>
-        )}
-      </div>
-
-      {/* ② レーダーチャート */}
-      <div
-        className="rounded-[18px] border-2 p-4"
-        style={{ background: 'var(--panel)', borderColor: 'var(--border)', boxShadow: '0 3px 0 #e8c9f0' }}
-      >
-        <p className="text-xs font-bold mb-3" style={{ color: 'var(--dim)' }}>
-          📊 ステータス比較
-        </p>
-        <RadarChart stats={myStats} compareStats={partnerStats} />
-      </div>
-
-      {/* ③ バトルバー */}
-      <div
-        className="rounded-[18px] border-2 p-4"
-        style={{ background: 'var(--panel)', borderColor: 'var(--border)', boxShadow: '0 3px 0 #e8c9f0' }}
-      >
-        <p className="text-xs font-bold mb-3" style={{ color: 'var(--dim)' }}>
-          ⚔️ 項目別対決
-        </p>
-        <BattleBars myStats={myStats} senpaiStats={partnerStats} />
-      </div>
-
-      {/* ④ 相手の曲一覧 */}
-      <div
-        className="rounded-[18px] border-2 p-4"
-        style={{ background: 'var(--panel)', borderColor: 'var(--border)', boxShadow: '0 3px 0 #e8c9f0' }}
-      >
-        <p className="text-xs font-bold mb-3" style={{ color: 'var(--dim)' }}>
-          🎶 {partner.username} の曲 ({partner.songs.length}曲)
-        </p>
-        {partner.songs.length === 0 ? (
-          <p className="text-sm text-center py-4" style={{ color: 'var(--dim)' }}>
-            曲情報がありません
-          </p>
-        ) : (
-          <ul className="flex flex-col gap-1.5">
-            {partner.songs.map(song => (
-              <li
-                key={song.title}
-                className="flex items-center gap-2 px-3 py-2 rounded-[10px]"
-                style={{ background: 'var(--lavender)' }}
-              >
-                <span className="flex-1 text-sm truncate" style={{ color: 'var(--text)' }}>
-                  {song.title}
-                </span>
-                <span className="text-xs" style={{ color: 'var(--purple)' }}>
-                  {'★'.repeat(song.stars)}
-                </span>
-              </li>
-            ))}
-          </ul>
         )}
       </div>
     </div>
@@ -291,25 +257,45 @@ function CompareView({
 
 // ── メインページ ──────────────────────────────────────
 export default function ComparePage() {
+  const currentPartner = useAppStore(s => s.currentPartner);
+  const setCurrentPartner = useAppStore(s => s.setCurrentPartner);
+  const [partners, setPartners] = useState<PartnerProfile[]>([]);
+  const [loadingPartners, setLoadingPartners] = useState(true);
+
   const { data: myProfile } = useSWR<MusicProfile>(
     '/music/profile/',
     (p: string) => apiFetch<MusicProfile>(p)
   );
-  const currentPartner = useAppStore(s => s.currentPartner);
-  const setCurrentPartner = useAppStore(s => s.setCurrentPartner);
-  const [partners, setPartners] = useState<PartnerProfile[]>([]);
 
+  // マウント時にサーバーからパートナーを取得してデバイス間のデータを同期する
   useEffect(() => {
-    setPartners(getPartners());
+    let cancelled = false;
+    fetchPartnersFromServer(apiFetch).then(profiles => {
+      if (!cancelled) {
+        setPartners(profiles);
+        setLoadingPartners(false);
+      }
+    });
+    return () => { cancelled = true; };
   }, []);
 
-  const handleSelect = (p: PartnerProfile) => {
-    setCurrentPartner(p);
-  };
+  if (!myProfile || loadingPartners) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <p style={{ color: 'var(--dim)' }}>読み込み中...</p>
+      </div>
+    );
+  }
 
-  const handleBack = () => {
-    setCurrentPartner(null);
-  };
+  if (currentPartner) {
+    return (
+      <CompareView
+        myProfile={myProfile}
+        partner={currentPartner}
+        onBack={() => setCurrentPartner(null)}
+      />
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -317,20 +303,12 @@ export default function ComparePage() {
         className="text-xl font-bold"
         style={{ color: 'var(--purple)', fontFamily: 'var(--font-dot-gothic), monospace' }}
       >
-        🆚 比較
+        ⚔️ 比較
       </h1>
-
-      {!myProfile ? (
-        <p style={{ color: 'var(--dim)' }}>読み込み中...</p>
-      ) : currentPartner ? (
-        <CompareView
-          myProfile={myProfile}
-          partner={currentPartner}
-          onBack={handleBack}
-        />
-      ) : (
-        <PartnerPicker partners={partners} onSelect={handleSelect} />
-      )}
+      <PartnerPicker
+        partners={partners}
+        onSelect={p => setCurrentPartner(p)}
+      />
     </div>
   );
 }

@@ -33,3 +33,53 @@ class Song(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class ComparePartner(models.Model):
+    """
+    ユーザーがQRスキャンで交換した相手のプロフィールをサーバーに保存するモデル。
+    PWA・ブラウザ間でパートナー情報を共有するために使用する。
+    """
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='compare_partners'
+    )
+    partner_username = models.CharField(max_length=150)
+    partner_instrument = models.CharField(max_length=10, choices=INSTRUMENT_CHOICES)
+    # パートナーの曲リスト: [{"title": "...", "stars": N}, ...]
+    partner_songs = models.JSONField(default=list)
+    # パートナーのステータス: {"stat_tempo": N, ...}
+    partner_stats = models.JSONField(default=dict)
+    scanned_at = models.DateTimeField()
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-scanned_at']
+        # 同一ユーザーが同一パートナーを複数回スキャンした場合は1件に集約する
+        unique_together = [('user', 'partner_username')]
+
+    def __str__(self):
+        return f'{self.user.username} → {self.partner_username}'
+
+
+class CompareSession(models.Model):
+    """
+    比較画面でユーザーが記録したセッション（演奏した曲など）をサーバーに保存するモデル。
+    PWA・ブラウザ間で履歴を共有するために使用する。
+    """
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='compare_sessions'
+    )
+    # フロントエンドで生成したユニーク ID（重複登録防止に使用）
+    client_id = models.CharField(max_length=64, unique=True)
+    partner_username = models.CharField(max_length=150)
+    partner_instrument = models.CharField(max_length=10, choices=INSTRUMENT_CHOICES)
+    # 演奏した曲タイトルのリスト: ["title1", "title2", ...]
+    played_songs = models.JSONField(default=list)
+    session_date = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-session_date']
+
+    def __str__(self):
+        return f'{self.user.username} × {self.partner_username} ({self.session_date:%Y-%m-%d})'
