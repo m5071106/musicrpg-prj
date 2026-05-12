@@ -7,7 +7,8 @@ import { apiFetch } from '@/lib/api';
 import { useAppStore } from '@/store/useAppStore';
 import {
   getPartners,
-  saveSession,
+  saveSessionToServer,
+  syncPartnersFromServer,
   type PartnerProfile,
   type SessionRecord,
 } from '@/lib/localStore';
@@ -145,7 +146,7 @@ function CompareView({
       playedSongs: Array.from(selected),
       date: new Date().toISOString(),
     };
-    saveSession(session);
+    saveSessionToServer(session, apiFetch);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   }
@@ -301,6 +302,9 @@ export default function ComparePage() {
 
   useEffect(() => {
     setPartners(getPartners());
+    syncPartnersFromServer(apiFetch).then(() => {
+      setPartners(getPartners());
+    });
   }, []);
 
   const handleSelect = (p: PartnerProfile) => {

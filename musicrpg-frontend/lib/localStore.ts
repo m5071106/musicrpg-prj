@@ -86,6 +86,132 @@ export function encodeQR(
   );
 }
 
+// ── サーバー同期（パートナー） ──────────────────────────
+
+type ApiFetchFn = <T>(path: string, options?: RequestInit) => Promise<T>;
+
+export async function savePartnerToServer(
+  p: PartnerProfile,
+  apiFetch: ApiFetchFn
+): Promise<void> {
+  savePartner(p); // always save locally first
+  try {
+    await apiFetch('/music/partners/', {
+      method: 'POST',
+      body: JSON.stringify({
+        username: p.username,
+        instrument: p.instrument,
+        songs: p.songs,
+        stats: p.stats,
+        scanned_at: p.scannedAt,
+      }),
+    });
+  } catch {
+    // network failure is fine — local copy is saved
+  }
+}
+
+export async function syncPartnersFromServer(apiFetch: ApiFetchFn): Promise<void> {
+  try {
+    const serverPartners = await apiFetch<Array<{
+      username: string;
+      instrument: string;
+      songs: Array<{ title: string; stars: number }>;
+      stats: { stat_tempo: number; stat_emotion: number; stat_range: number; stat_effort: number; stat_stage: number };
+      scanned_at: string;
+    }>>('/music/partners/');
+    const local = getPartners();
+    const localMap = new Map(local.map(p => [p.username, p]));
+    for (const sp of serverPartners) {
+      const lp = localMap.get(sp.username);
+      if (!lp || new Date(sp.scanned_at) > new Date(lp.scannedAt)) {
+        localMap.set(sp.username, {
+          username: sp.username,
+          instrument: sp.instrument as Instrument,
+          songs: sp.songs,
+          stats: sp.stats,
+          scannedAt: sp.scanned_at,
+        });
+      }
+    }
+    const merged = Array.from(localMap.values())
+      .sort((a, b) => new Date(b.scannedAt).getTime() - new Date(a.scannedAt).getTime())
+      .slice(0, 30);
+    localStorage.setItem('mrpg_partners', JSON.stringify(merged));
+  } catch {
+    // offline — use local data
+  }
+}
+
+// ── サーバー同期（セッション） ─────────────────────────
+
+export async function saveSessionToServer(
+  s: SessionRecord,
+  apiFetch: ApiFetchFn
+): Promise<void> {
+  saveSession(s); // always save locally first
+  try {
+    await apiFetch('/music/sessions/', {
+      method: 'POST',
+      body: JSON.stringify([{
+        client_id: s.id,
+        partner_username: s.partnerUsername,
+        partner_instrument: s.partnerInstrument,
+        played_songs: s.playedSongs,
+        date: s.date,
+      }]),
+    });
+  } catch {
+    // network failure is fine — local copy is saved
+  }
+}
+
+export async function syncSessionsFromServer(apiFetch: ApiFetchFn): Promise<void> {
+  try {
+    const serverSessions = await apiFetch<Array<{
+      client_id: string;
+      partner_username: string;
+      partner_instrument: string;
+      played_songs: string[];
+      date: string;
+    }>>('/music/sessions/');
+    const local = getSessions();
+    const localIds = new Set(local.map(s => s.id));
+    const toAdd: SessionRecord[] = serverSessions
+      .filter(ss => !localIds.has(ss.client_id))
+      .map(ss => ({
+        id: ss.client_id,
+        partnerUsername: ss.partner_username,
+        partnerInstrument: ss.partner_instrument as Instrument,
+        playedSongs: ss.played_songs,
+        date: ss.date,
+      }));
+    if (toAdd.length > 0) {
+      const merged = [...toAdd, ...local]
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, 100);
+      localStorage.setItem('mrpg_sessions', JSON.stringify(merged));
+    }
+    // also push any local sessions not yet on server
+    const serverIds = new Set(serverSessions.map(ss => ss.client_id));
+    const localOnly = local.filter(s => !serverIds.has(s.id));
+    if (localOnly.length > 0) {
+      await apiFetch('/music/sessions/', {
+        method: 'POST',
+        body: JSON.stringify(localOnly.map(s => ({
+          client_id: s.id,
+          partner_username: s.partnerUsername,
+          partner_instrument: s.partnerInstrument,
+          played_songs: s.playedSongs,
+          date: s.date,
+        }))),
+      });
+    }
+  } catch {
+    // offline — use local data
+  }
+}
+
 export function decodeQR(encoded: string): PartnerProfile | null {
   try {
     const binary = atob(encoded);
