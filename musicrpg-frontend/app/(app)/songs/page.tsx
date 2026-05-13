@@ -5,6 +5,7 @@ import useSWR from 'swr';
 import { apiFetch } from '@/lib/api';
 import { useAppStore } from '@/store/useAppStore';
 import SongList from '@/components/SongList';
+import SongSearch from '@/components/SongSearch';
 import StarRating from '@/components/StarRating';
 import type { Song, Stars } from '@/types';
 
@@ -13,6 +14,7 @@ export default function SongsPage() {
   const pendingStar = useAppStore((s) => s.pendingStar);
   const setPendingStar = useAppStore((s) => s.setPendingStar);
   const [title, setTitle] = useState('');
+  const [mbId, setMbId] = useState('');
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState('');
 
@@ -24,9 +26,15 @@ export default function SongsPage() {
     try {
       await apiFetch('/music/songs/', {
         method: 'POST',
-        body: JSON.stringify({ title: title.trim(), stars: pendingStar }),
+        body: JSON.stringify({
+          title: title.trim(),
+          stars: pendingStar,
+          mb_id: mbId,
+          mb_title: mbId ? title.trim() : '',
+        }),
       });
       setTitle('');
+      setMbId('');
       await mutate();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'エラーが発生しました');
@@ -58,13 +66,10 @@ export default function SongsPage() {
         <p className="text-xs font-bold" style={{ color: 'var(--dim)' }}>
           曲を追加
         </p>
-        <input
-          type="text"
-          placeholder="曲名を入力..."
+        <SongSearch
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="w-full px-4 py-2 rounded-[12px] border-2 text-sm outline-none"
-          style={{ borderColor: 'var(--border)', color: 'var(--text)', background: '#fdfaff' }}
+          mbId={mbId}
+          onChange={(t, id) => { setTitle(t); setMbId(id); }}
         />
         <div className="flex items-center gap-2">
           <span className="text-xs" style={{ color: 'var(--dim)' }}>難易度</span>

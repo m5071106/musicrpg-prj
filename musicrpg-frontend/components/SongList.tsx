@@ -26,9 +26,19 @@ export default function SongList({ songs, onDelete }: Props) {
           style={{ borderColor: '#e8c9f0', background: '#fff' }}
         >
           <div className="flex flex-col gap-0.5">
-            <span className="font-bold text-sm" style={{ color: '#3a2a4a' }}>
-              {song.title}
-            </span>
+            <div className="flex items-center gap-1.5">
+              <span className="font-bold text-sm" style={{ color: '#3a2a4a' }}>
+                {song.title}
+              </span>
+              {song.mb_id && (
+                <span
+                  className="text-[9px] px-1 py-0.5 rounded-full"
+                  style={{ background: '#f0eaff', color: '#7a4faa', border: '1px solid #c9a8f0' }}
+                >
+                  MB
+                </span>
+              )}
+            </div>
             <StarRating value={song.stars} readonly size="sm" />
           </div>
           <button

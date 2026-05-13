@@ -14,6 +14,8 @@ export interface Song {
   title: string;
   stars: Stars;
   added_at: string;
+  mb_id?: string;
+  mb_title?: string;
 }
 
 export interface MusicProfile extends Stats {

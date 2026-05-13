@@ -17,12 +17,23 @@ import BattleBars from '@/components/BattleBars';
 import type { MusicProfile, Stats } from '@/types';
 
 // ── 共通曲の判定 ──────────────────────────────────────
+// " - Remastered 2009" / "(Live)" など付加情報を除去して曲名を正規化する
+function normalizeSongTitle(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/\s*[-–—]\s*(?:remastered?|live|acoustic|cover|instrumental|remix|edit|version|mix|\d{4}).*$/i, '')
+    .replace(/\s*\([^)]*(?:remastered?|live|acoustic|cover|instrumental|remix|edit|version|mix|\d{4})[^)]*\)/gi, '')
+    .replace(/[\s　]+/g, ' ')
+    .trim();
+}
+
+// 曲名の正規化で照合する（歌手が異なるカバー曲でもマッチできるようにする）
 function getCommonSongs(
-  mySongs: Array<{ title: string; stars: number }>,
-  partnerSongs: Array<{ title: string; stars: number }>
+  mySongs: Array<{ title: string; stars: number; mb_id?: string }>,
+  partnerSongs: Array<{ title: string; stars: number; mb_id?: string }>
 ) {
-  const partnerSet = new Set(partnerSongs.map(s => s.title.toLowerCase()));
-  return mySongs.filter(s => partnerSet.has(s.title.toLowerCase()));
+  const partnerNormalized = new Set(partnerSongs.map(s => normalizeSongTitle(s.title)));
+  return mySongs.filter(s => partnerNormalized.has(normalizeSongTitle(s.title)));
 }
 
 // ── パートナー選択パネル ──────────────────────────────

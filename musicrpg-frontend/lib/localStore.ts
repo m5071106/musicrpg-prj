@@ -5,7 +5,7 @@ import type { Instrument } from '@/types';
 export interface PartnerProfile {
   username: string;
   instrument: Instrument;
-  songs: Array<{ title: string; stars: number }>;
+  songs: Array<{ title: string; stars: number; mb_id?: string }>;
   stats: {
     stat_tempo: number;
     stat_emotion: number;
@@ -30,7 +30,7 @@ interface ServerPartner {
   id: number;
   partner_username: string;
   partner_instrument: Instrument;
-  partner_songs: Array<{ title: string; stars: number }>;
+  partner_songs: Array<{ title: string; stars: number; mb_id?: string }>;
   partner_stats: {
     stat_tempo: number;
     stat_emotion: number;
@@ -195,7 +195,7 @@ export async function saveSessionToServer(
 export function encodeQR(
   username: string,
   instrument: Instrument,
-  songs: Array<{ title: string; stars: number }>,
+  songs: Array<{ title: string; stars: number; mb_id?: string }>,
   stats: {
     stat_tempo: number;
     stat_emotion: number;
@@ -205,10 +205,13 @@ export function encodeQR(
   }
 ): string {
   const data = {
-    v: 1,
+    v: 2,
     u: username,
     i: instrument,
-    s: songs.slice(0, 20).map(s => [s.title, s.stars] as [string, number]),
+    // mb_id がある場合のみ3要素目に追加（QRデータ量を抑える）
+    s: songs.slice(0, 20).map(s =>
+      s.mb_id ? [s.title, s.stars, s.mb_id] : [s.title, s.stars]
+    ),
     t: [stats.stat_tempo, stats.stat_emotion, stats.stat_range, stats.stat_effort, stats.stat_stage],
   };
   const json = JSON.stringify(data);
@@ -227,15 +230,17 @@ export function decodeQR(encoded: string): PartnerProfile | null {
       binary.split('').map(c => '%' + c.charCodeAt(0).toString(16).padStart(2, '0')).join('')
     );
     const data = JSON.parse(json);
-    if (data.v !== 1 || !data.u || !data.i || !Array.isArray(data.s)) return null;
+    if (!data.u || !data.i || !Array.isArray(data.s)) return null;
+    // v:1（mb_id なし）と v:2（mb_id あり）の両方に対応
 
-    // t フィールドが存在すれば実際の値を使い、古いQRデータには 3 をフォールバックとして使う
     const t: number[] = Array.isArray(data.t) && data.t.length === 5 ? data.t : [3, 3, 3, 3, 3];
 
     return {
       username: data.u,
       instrument: data.i as Instrument,
-      songs: (data.s as [string, number][]).map(([title, stars]) => ({ title, stars })),
+      songs: (data.s as Array<[string, number, string?]>).map(
+        ([title, stars, mb_id]) => ({ title, stars, mb_id: mb_id ?? '' })
+      ),
       stats: {
         stat_tempo: t[0],
         stat_emotion: t[1],
