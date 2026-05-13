@@ -27,6 +27,10 @@ class Song(models.Model):
     title = models.CharField(max_length=100)
     stars = models.PositiveSmallIntegerField(default=3)
     added_at = models.DateTimeField(auto_now_add=True)
+    # MusicBrainz Recording ID（UUID 形式、未登録時は空文字）
+    mb_id = models.CharField(max_length=36, blank=True, default='')
+    # MusicBrainz から取得した公式タイトル
+    mb_title = models.CharField(max_length=255, blank=True, default='')
 
     class Meta:
         ordering = ['-added_at']

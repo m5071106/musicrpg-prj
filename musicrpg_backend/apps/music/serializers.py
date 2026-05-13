@@ -5,7 +5,7 @@ from .models import MusicProfile, Song, ComparePartner, CompareSession
 class SongSerializer(serializers.ModelSerializer):
     class Meta:
         model = Song
-        fields = ['id', 'title', 'stars', 'added_at']
+        fields = ['id', 'title', 'stars', 'added_at', 'mb_id', 'mb_title']
         read_only_fields = ['id', 'added_at']
 
     def validate_stars(self, v):
