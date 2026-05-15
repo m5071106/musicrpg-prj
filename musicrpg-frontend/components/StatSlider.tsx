@@ -33,8 +33,9 @@ export default function StatSlider({ stats, onChange, disabled }: Props) {
               onChange={(e) => onChange(key, Number(e.target.value))}
               className="flex-1 h-2 rounded-full appearance-none cursor-pointer"
               style={{
-                accentColor: color,
-              }}
+                '--stat-color': color,
+                background: `linear-gradient(to right, ${color} ${(value - 1) / 4 * 100}%, #e8d5f8 ${(value - 1) / 4 * 100}%)`,
+              } as React.CSSProperties}
             />
             <span
               className="text-sm font-bold w-5 text-right"
