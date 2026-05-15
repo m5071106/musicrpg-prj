@@ -3,18 +3,18 @@
 import { useState, useCallback } from 'react';
 import useSWR from 'swr';
 import { apiFetch } from '@/lib/api';
-import { INSTRUMENT_EMOJIS, INSTRUMENT_LABELS } from '@/lib/constants';
+import { getInstrumentInfo } from '@/lib/constants';
 import RadarChart from '@/components/RadarChart';
 import StatSlider from '@/components/StatSlider';
 import InstrumentSelector from '@/components/InstrumentSelector';
 import LevelUpBanner from '@/components/LevelUpBanner';
-import type { MusicProfile, Stats, Instrument } from '@/types';
+import type { MusicProfile, Stats } from '@/types';
 
 export default function StatusPage() {
   const { data: profile, mutate, isLoading } = useSWR<MusicProfile>('/music/profile/', (path: string) => apiFetch<MusicProfile>(path));
   const [editing, setEditing] = useState(false);
   const [localStats, setLocalStats] = useState<Stats | null>(null);
-  const [localInstrument, setLocalInstrument] = useState<Instrument | null>(null);
+  const [localInstruments, setLocalInstruments] = useState<string[] | null>(null);
   const [saving, setSaving] = useState(false);
   const [showBanner, setShowBanner] = useState(false);
 
@@ -27,17 +27,17 @@ export default function StatusPage() {
       stat_effort: profile.stat_effort,
       stat_stage: profile.stat_stage,
     });
-    setLocalInstrument(profile.instrument);
+    setLocalInstruments(profile.instruments?.length ? [...profile.instruments] : ['piano']);
     setEditing(true);
   }
 
   async function saveEdit() {
-    if (!localStats || !localInstrument) return;
+    if (!localStats || !localInstruments?.length) return;
     setSaving(true);
     try {
       await apiFetch('/music/profile/', {
         method: 'PATCH',
-        body: JSON.stringify({ ...localStats, instrument: localInstrument }),
+        body: JSON.stringify({ ...localStats, instruments: localInstruments }),
       });
       await mutate();
       setEditing(false);
@@ -50,7 +50,7 @@ export default function StatusPage() {
   function cancelEdit() {
     setEditing(false);
     setLocalStats(null);
-    setLocalInstrument(null);
+    setLocalInstruments(null);
   }
 
   const handleBannerDone = useCallback(() => setShowBanner(false), []);
@@ -74,7 +74,9 @@ export default function StatusPage() {
     );
   }
 
-  const instrument = editing && localInstrument ? localInstrument : profile.instrument;
+  const instruments = editing && localInstruments ? localInstruments : (profile.instruments ?? ['piano']);
+  const primaryInstrument = instruments[0] ?? 'piano';
+  const { emoji: primaryEmoji } = getInstrumentInfo(primaryInstrument);
 
   return (
     <>
@@ -87,23 +89,26 @@ export default function StatusPage() {
           style={{ background: 'var(--panel)', borderColor: 'var(--border)', boxShadow: '0 3px 0 #e8c9f0' }}
         >
           <div
-            className="w-14 h-14 rounded-full flex items-center justify-center text-3xl border-2"
+            className="w-14 h-14 rounded-full flex items-center justify-center text-3xl border-2 shrink-0"
             style={{ background: 'var(--lavender)', borderColor: 'var(--border)' }}
           >
-            {INSTRUMENT_EMOJIS[instrument]}
+            {primaryEmoji}
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <h1
               className="text-lg font-bold"
               style={{ color: 'var(--purple)', fontFamily: 'var(--font-dot-gothic), monospace' }}
             >
               My Card
             </h1>
-            <p className="text-sm" style={{ color: 'var(--dim)' }}>
-              {INSTRUMENT_LABELS[instrument]}
+            <p className="text-sm truncate" style={{ color: 'var(--dim)' }}>
+              {instruments.map(inst => {
+                const { emoji, label } = getInstrumentInfo(inst);
+                return `${emoji} ${label}`;
+              }).join(' / ')}
             </p>
           </div>
-          <div className="text-right">
+          <div className="text-right shrink-0">
             <p className="text-xs" style={{ color: 'var(--dim)' }}>TOTAL</p>
             <p
               className="text-2xl font-bold"
@@ -133,8 +138,8 @@ export default function StatusPage() {
                 楽器
               </p>
               <InstrumentSelector
-                value={localInstrument!}
-                onChange={setLocalInstrument}
+                values={localInstruments!}
+                onChange={setLocalInstruments}
               />
               <p className="text-xs font-bold mt-4 mb-3" style={{ color: 'var(--dim)' }}>
                 ステータス
@@ -147,7 +152,7 @@ export default function StatusPage() {
                 <button
                   type="button"
                   onClick={saveEdit}
-                  disabled={saving}
+                  disabled={saving || !localInstruments?.length}
                   className="flex-1 py-2 rounded-[12px] font-bold text-white text-sm active:translate-y-0.5"
                   style={{ background: 'var(--purple)' }}
                 >

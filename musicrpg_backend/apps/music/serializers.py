@@ -20,12 +20,20 @@ class MusicProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = MusicProfile
         fields = [
-            'id', 'instrument',
+            'id', 'instruments',
             'stat_tempo', 'stat_emotion', 'stat_range',
             'stat_effort', 'stat_stage',
             'updated_at', 'songs',
         ]
         read_only_fields = ['id', 'updated_at']
+
+    def validate_instruments(self, v):
+        if not isinstance(v, list) or not (1 <= len(v) <= 3):
+            raise serializers.ValidationError('楽器は1〜3つ指定してください')
+        for inst in v:
+            if not isinstance(inst, str) or not inst.strip():
+                raise serializers.ValidationError('楽器名は空でない文字列で指定してください')
+        return v
 
     def validate_stat_tempo(self, v):
         if not 1 <= v <= 5:
@@ -59,13 +67,18 @@ class ComparePartnerSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'partner_username',
-            'partner_instrument',
+            'partner_instruments',
             'partner_songs',
             'partner_stats',
             'scanned_at',
             'updated_at',
         ]
         read_only_fields = ['id', 'updated_at']
+
+    def validate_partner_instruments(self, v):
+        if not isinstance(v, list):
+            raise serializers.ValidationError('リスト形式で指定してください')
+        return v
 
     def validate_partner_songs(self, v):
         if not isinstance(v, list):
@@ -88,7 +101,7 @@ class CompareSessionSerializer(serializers.ModelSerializer):
             'id',
             'client_id',
             'partner_username',
-            'partner_instrument',
+            'partner_instruments',
             'played_songs',
             'session_date',
             'created_at',

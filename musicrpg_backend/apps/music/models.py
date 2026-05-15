@@ -1,16 +1,10 @@
 from django.db import models
 from apps.users.models import User
 
-INSTRUMENT_CHOICES = [
-    ('piano', 'Piano'),
-    ('esax', 'Electric Sax'),
-    ('vocal', 'Vocal'),
-]
-
 
 class MusicProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='music_profile')
-    instrument = models.CharField(max_length=10, choices=INSTRUMENT_CHOICES, default='piano')
+    instruments = models.JSONField(default=list)  # up to 3 instrument strings
     stat_tempo = models.PositiveSmallIntegerField(default=3)
     stat_emotion = models.PositiveSmallIntegerField(default=3)
     stat_range = models.PositiveSmallIntegerField(default=3)
@@ -19,7 +13,8 @@ class MusicProfile(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f'{self.user.display_name or self.user.username} ({self.instrument})'
+        insts = ', '.join(self.instruments) if self.instruments else 'none'
+        return f'{self.user.display_name or self.user.username} ({insts})'
 
 
 class Song(models.Model):
@@ -48,7 +43,7 @@ class ComparePartner(models.Model):
         User, on_delete=models.CASCADE, related_name='compare_partners'
     )
     partner_username = models.CharField(max_length=150)
-    partner_instrument = models.CharField(max_length=10, choices=INSTRUMENT_CHOICES)
+    partner_instruments = models.JSONField(default=list)  # up to 3 instrument strings
     # パートナーの曲リスト: [{"title": "...", "stars": N}, ...]
     partner_songs = models.JSONField(default=list)
     # パートナーのステータス: {"stat_tempo": N, ...}
@@ -76,7 +71,7 @@ class CompareSession(models.Model):
     # フロントエンドで生成したユニーク ID（重複登録防止に使用）
     client_id = models.CharField(max_length=64, unique=True)
     partner_username = models.CharField(max_length=150)
-    partner_instrument = models.CharField(max_length=10, choices=INSTRUMENT_CHOICES)
+    partner_instruments = models.JSONField(default=list)  # up to 3 instrument strings
     # 演奏した曲タイトルのリスト: ["title1", "title2", ...]
     played_songs = models.JSONField(default=list)
     session_date = models.DateTimeField()

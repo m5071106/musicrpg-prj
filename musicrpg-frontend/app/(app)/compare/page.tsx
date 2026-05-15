@@ -11,13 +11,12 @@ import {
   type PartnerProfile,
   type SessionRecord,
 } from '@/lib/localStore';
-import { INSTRUMENT_EMOJIS, INSTRUMENT_LABELS } from '@/lib/constants';
+import { getInstrumentInfo } from '@/lib/constants';
 import RadarChart from '@/components/RadarChart';
 import BattleBars from '@/components/BattleBars';
 import type { MusicProfile, Stats } from '@/types';
 
 // ── 共通曲の判定 ──────────────────────────────────────
-// " - Remastered 2009" / "(Live)" など付加情報を除去して曲名を正規化する
 function normalizeSongTitle(title: string): string {
   return title
     .toLowerCase()
@@ -27,13 +26,21 @@ function normalizeSongTitle(title: string): string {
     .trim();
 }
 
-// 曲名の正規化で照合する（歌手が異なるカバー曲でもマッチできるようにする）
 function getCommonSongs(
   mySongs: Array<{ title: string; stars: number; mb_id?: string }>,
   partnerSongs: Array<{ title: string; stars: number; mb_id?: string }>
 ) {
   const partnerNormalized = new Set(partnerSongs.map(s => normalizeSongTitle(s.title)));
   return mySongs.filter(s => partnerNormalized.has(normalizeSongTitle(s.title)));
+}
+
+function instrumentsLabel(instruments: string[]): string {
+  return instruments
+    .map(inst => {
+      const { emoji, label } = getInstrumentInfo(inst);
+      return `${emoji} ${label}`;
+    })
+    .join(' / ');
 }
 
 // ── パートナー選択パネル ──────────────────────────────
@@ -77,27 +84,30 @@ function PartnerPicker({
             過去に交換した相手
           </p>
           <ul className="flex flex-col gap-2">
-            {partners.map(p => (
-              <li key={p.username}>
-                <button
-                  type="button"
-                  onClick={() => onSelect(p)}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[12px] border-2 transition-all active:translate-y-0.5 text-left"
-                  style={{ borderColor: 'var(--border)', background: '#fdfaff' }}
-                >
-                  <span className="text-xl">{INSTRUMENT_EMOJIS[p.instrument]}</span>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-sm truncate" style={{ color: 'var(--text)' }}>
-                      {p.username}
-                    </p>
-                    <p className="text-[10px]" style={{ color: 'var(--dim)' }}>
-                      {INSTRUMENT_LABELS[p.instrument]}　{p.songs.length}曲
-                    </p>
-                  </div>
-                  <span className="text-xs" style={{ color: 'var(--purple)' }}>▶</span>
-                </button>
-              </li>
-            ))}
+            {partners.map(p => {
+              const primary = getInstrumentInfo(p.instruments[0] ?? '');
+              return (
+                <li key={p.username}>
+                  <button
+                    type="button"
+                    onClick={() => onSelect(p)}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[12px] border-2 transition-all active:translate-y-0.5 text-left"
+                    style={{ borderColor: 'var(--border)', background: '#fdfaff' }}
+                  >
+                    <span className="text-xl">{primary.emoji}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-sm truncate" style={{ color: 'var(--text)' }}>
+                        {p.username}
+                      </p>
+                      <p className="text-[10px] truncate" style={{ color: 'var(--dim)' }}>
+                        {instrumentsLabel(p.instruments)}　{p.songs.length}曲
+                      </p>
+                    </div>
+                    <span className="text-xs" style={{ color: 'var(--purple)' }}>▶</span>
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}
@@ -131,7 +141,6 @@ function CompareView({
     stat_stage: myProfile.stat_stage,
   };
 
-  // QRコードにデコードされた相手の実際のステータスを使用する
   const partnerStats: Stats = {
     stat_tempo: partner.stats.stat_tempo,
     stat_emotion: partner.stats.stat_emotion,
@@ -152,15 +161,16 @@ function CompareView({
     const session: SessionRecord = {
       id: `${Date.now()}`,
       partnerUsername: partner.username,
-      partnerInstrument: partner.instrument,
+      partnerInstruments: partner.instruments,
       playedSongs: Array.from(selected),
       date: new Date().toISOString(),
     };
-    // ローカルストレージとサーバー両方に保存してデバイス間で同期する
     await saveSessionToServer(session, apiFetch);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   }
+
+  const partnerPrimary = getInstrumentInfo(partner.instruments[0] ?? '');
 
   return (
     <div className="flex flex-col gap-4">
@@ -178,13 +188,13 @@ function CompareView({
           className="flex-1 flex items-center gap-3 px-4 py-2.5 rounded-[14px] border-2"
           style={{ background: 'var(--panel)', borderColor: 'var(--border)' }}
         >
-          <span className="text-2xl">{INSTRUMENT_EMOJIS[partner.instrument]}</span>
-          <div>
-            <p className="font-bold text-sm" style={{ color: 'var(--purple)' }}>
+          <span className="text-2xl">{partnerPrimary.emoji}</span>
+          <div className="min-w-0">
+            <p className="font-bold text-sm truncate" style={{ color: 'var(--purple)' }}>
               {partner.username}
             </p>
-            <p className="text-[10px]" style={{ color: 'var(--dim)' }}>
-              {INSTRUMENT_LABELS[partner.instrument]}　{partner.songs.length}曲
+            <p className="text-[10px] truncate" style={{ color: 'var(--dim)' }}>
+              {instrumentsLabel(partner.instruments)}　{partner.songs.length}曲
             </p>
           </div>
         </div>
@@ -278,7 +288,6 @@ export default function ComparePage() {
     (p: string) => apiFetch<MusicProfile>(p)
   );
 
-  // マウント時にサーバーからパートナーを取得してデバイス間のデータを同期する
   useEffect(() => {
     let cancelled = false;
     fetchPartnersFromServer(apiFetch).then(profiles => {

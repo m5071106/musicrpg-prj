@@ -1,10 +1,8 @@
-import type { Instrument } from '@/types';
-
 // ── 型定義 ──────────────────────────────────────────────
 
 export interface PartnerProfile {
   username: string;
-  instrument: Instrument;
+  instruments: string[];
   songs: Array<{ title: string; stars: number; mb_id?: string }>;
   stats: {
     stat_tempo: number;
@@ -19,7 +17,7 @@ export interface PartnerProfile {
 export interface SessionRecord {
   id: string;
   partnerUsername: string;
-  partnerInstrument: Instrument;
+  partnerInstruments: string[];
   playedSongs: string[];
   date: string;
 }
@@ -29,7 +27,7 @@ export interface SessionRecord {
 interface ServerPartner {
   id: number;
   partner_username: string;
-  partner_instrument: Instrument;
+  partner_instruments: string[];
   partner_songs: Array<{ title: string; stars: number; mb_id?: string }>;
   partner_stats: {
     stat_tempo: number;
@@ -46,7 +44,7 @@ interface ServerSession {
   id: number;
   client_id: string;
   partner_username: string;
-  partner_instrument: Instrument;
+  partner_instruments: string[];
   played_songs: string[];
   session_date: string;
   created_at: string;
@@ -84,93 +82,71 @@ export function saveSession(s: SessionRecord): void {
 
 // ── サーバー同期: パートナー ────────────────────────────
 
-/**
- * サーバーからパートナー一覧を取得してローカルストレージへ上書きマージする。
- * PWA・ブラウザ起動時に呼び出すことでデータを統一する。
- */
 export async function fetchPartnersFromServer(apiFetch: <T>(path: string) => Promise<T>): Promise<PartnerProfile[]> {
   try {
     const serverList = await apiFetch<ServerPartner[]>('/music/partners/');
     const profiles: PartnerProfile[] = serverList.map(s => ({
       username: s.partner_username,
-      instrument: s.partner_instrument,
+      instruments: Array.isArray(s.partner_instruments) ? s.partner_instruments : [],
       songs: s.partner_songs,
       stats: s.partner_stats,
       scannedAt: s.scanned_at,
     }));
-    // サーバーデータでローカルストレージを上書きする
     if (typeof window !== 'undefined') {
       localStorage.setItem('mrpg_partners', JSON.stringify(profiles.slice(0, 30)));
     }
     return profiles;
   } catch {
-    // オフライン時などはローカルのデータを返す
     return getPartners();
   }
 }
 
-/**
- * パートナーをサーバーへ保存する（upsert）。
- * ローカルストレージにも同時に保存する。
- */
 export async function savePartnerToServer(
   p: PartnerProfile,
   apiFetch: <T>(path: string, options?: RequestInit) => Promise<T>
 ): Promise<void> {
-  // まずローカルに保存してオフライン時でも即時反映できるようにする
   savePartner(p);
   try {
     await apiFetch<ServerPartner>('/music/partners/', {
       method: 'POST',
       body: JSON.stringify({
         partner_username: p.username,
-        partner_instrument: p.instrument,
+        partner_instruments: p.instruments,
         partner_songs: p.songs,
         partner_stats: p.stats,
         scanned_at: p.scannedAt,
       }),
     });
   } catch {
-    // サーバー保存失敗時はローカルデータを維持（次回オンライン時に再同期可能）
+    // オフライン時はローカルデータを維持
   }
 }
 
 // ── サーバー同期: セッション履歴 ────────────────────────
 
-/**
- * サーバーからセッション履歴を取得してローカルストレージへ上書きマージする。
- * PWA・ブラウザ起動時に呼び出すことでデータを統一する。
- */
 export async function fetchSessionsFromServer(apiFetch: <T>(path: string) => Promise<T>): Promise<SessionRecord[]> {
   try {
     const serverList = await apiFetch<ServerSession[]>('/music/sessions/');
     const records: SessionRecord[] = serverList.map(s => ({
       id: s.client_id,
       partnerUsername: s.partner_username,
-      partnerInstrument: s.partner_instrument,
+      partnerInstruments: Array.isArray(s.partner_instruments) ? s.partner_instruments : [],
       playedSongs: s.played_songs,
       date: s.session_date,
     }));
-    // サーバーデータでローカルストレージを上書きする
     if (typeof window !== 'undefined') {
       localStorage.setItem('mrpg_sessions', JSON.stringify(records.slice(0, 100)));
     }
     return records;
   } catch {
-    // オフライン時などはローカルのデータを返す
     return getSessions();
   }
 }
 
-/**
- * セッションをサーバーへ保存する（冪等: 同一 id は重複保存されない）。
- * ローカルストレージにも同時に保存する。
- */
 export async function saveSessionToServer(
   s: SessionRecord,
   apiFetch: <T>(path: string, options?: RequestInit) => Promise<T>
 ): Promise<void> {
-  // まずローカルに保存してオフライン時でも即時反映できるようにする
   saveSession(s);
   try {
     await apiFetch<ServerSession>('/music/sessions/', {
@@ -178,23 +154,22 @@ export async function saveSessionToServer(
       body: JSON.stringify({
         client_id: s.id,
         partner_username: s.partnerUsername,
-        partner_instrument: s.partnerInstrument,
+        partner_instruments: s.partnerInstruments,
         played_songs: s.playedSongs,
         session_date: s.date,
       }),
     });
   } catch {
-    // サーバー保存失敗時はローカルデータを維持（次回オンライン時に再同期可能）
+    // オフライン時はローカルデータを維持
   }
 }
 
 // ── QR エンコード / デコード ────────────────────────────
-// フォーマット: {v:1, u:username, i:instrument, s:[[title,stars],...], t:[tempo,emotion,range,effort,stage]}
-// UTF-8 対応の base64 エンコード
+// フォーマット: {v:3, u:username, i:[...instruments], s:[[title,stars],...], t:[tempo,emotion,range,effort,stage]}
 
 export function encodeQR(
   username: string,
-  instrument: Instrument,
+  instruments: string[],
   songs: Array<{ title: string; stars: number; mb_id?: string }>,
   stats: {
     stat_tempo: number;
@@ -205,17 +180,15 @@ export function encodeQR(
   }
 ): string {
   const data = {
-    v: 2,
+    v: 3,
     u: username,
-    i: instrument,
-    // mb_id がある場合のみ3要素目に追加（QRデータ量を抑える）
+    i: instruments,
     s: songs.slice(0, 20).map(s =>
       s.mb_id ? [s.title, s.stars, s.mb_id] : [s.title, s.stars]
     ),
     t: [stats.stat_tempo, stats.stat_emotion, stats.stat_range, stats.stat_effort, stats.stat_stage],
   };
   const json = JSON.stringify(data);
-  // UTF-8 safe btoa
   return btoa(
     encodeURIComponent(json).replace(/%([0-9A-F]{2})/g, (_, hex) =>
       String.fromCharCode(parseInt(hex, 16))
@@ -231,13 +204,15 @@ export function decodeQR(encoded: string): PartnerProfile | null {
     );
     const data = JSON.parse(json);
     if (!data.u || !data.i || !Array.isArray(data.s)) return null;
-    // v:1（mb_id なし）と v:2（mb_id あり）の両方に対応
+
+    // v1/v2（i が文字列）と v3（i が配列）の両方に対応
+    const instruments: string[] = Array.isArray(data.i) ? data.i : [data.i as string];
 
     const t: number[] = Array.isArray(data.t) && data.t.length === 5 ? data.t : [3, 3, 3, 3, 3];
 
     return {
       username: data.u,
-      instrument: data.i as Instrument,
+      instruments,
       songs: (data.s as Array<[string, number, string?]>).map(
         ([title, stars, mb_id]) => ({ title, stars, mb_id: mb_id ?? '' })
       ),
