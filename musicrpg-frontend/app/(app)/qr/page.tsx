@@ -7,7 +7,7 @@ import useSWR from 'swr';
 import { apiFetch, getStoredUsername } from '@/lib/api';
 import { encodeQR, decodeQR, savePartnerToServer } from '@/lib/localStore';
 import { useAppStore } from '@/store/useAppStore';
-import { INSTRUMENT_EMOJIS, INSTRUMENT_LABELS } from '@/lib/constants';
+import { getInstrumentInfo } from '@/lib/constants';
 import QRDisplay from '@/components/QRDisplay';
 import type { MusicProfile } from '@/types';
 
@@ -36,11 +36,13 @@ export default function QRPage() {
     setUsername(getStoredUsername());
   }, []);
 
+  const instruments = profile?.instruments ?? [];
+
   const qrData =
     profile && username
       ? encodeQR(
           username,
-          profile.instrument,
+          instruments,
           profile.songs.map(s => ({ title: s.title, stars: s.stars, mb_id: s.mb_id ?? '' })),
           {
             stat_tempo: profile.stat_tempo,
@@ -65,6 +67,13 @@ export default function QRPage() {
     [scanned, setCurrentPartner, router]
   );
 
+  const instrumentsLabel = instruments
+    .map(inst => {
+      const { emoji, label } = getInstrumentInfo(inst);
+      return `${emoji} ${label}`;
+    })
+    .join(' / ');
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
@@ -75,8 +84,8 @@ export default function QRPage() {
           🎴 QRコード
         </h1>
         {profile && (
-          <span className="text-sm" style={{ color: 'var(--dim)' }}>
-            {INSTRUMENT_EMOJIS[profile.instrument]} {INSTRUMENT_LABELS[profile.instrument]}
+          <span className="text-sm truncate max-w-[160px]" style={{ color: 'var(--dim)' }}>
+            {instrumentsLabel}
           </span>
         )}
       </div>
@@ -125,7 +134,7 @@ export default function QRPage() {
                   style={{ background: 'var(--lavender)' }}
                 >
                   <p className="text-xs" style={{ color: 'var(--purple)' }}>
-                    {INSTRUMENT_EMOJIS[profile!.instrument]} {INSTRUMENT_LABELS[profile!.instrument]}
+                    {instrumentsLabel}
                     　{Math.min(profile!.songs.length, 20)}曲（全{profile!.songs.length}曲中）
                   </p>
                   <p className="text-[10px] mt-1" style={{ color: 'var(--dim)' }}>

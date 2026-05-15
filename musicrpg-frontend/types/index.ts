@@ -1,4 +1,3 @@
-export type Instrument = 'piano' | 'esax' | 'vocal';
 export type Stars = 1 | 2 | 3 | 4 | 5;
 
 export interface Stats {
@@ -20,7 +19,7 @@ export interface Song {
 
 export interface MusicProfile extends Stats {
   id: number;
-  instrument: Instrument;
+  instruments: string[];
   updated_at: string;
   songs: Song[];
 }

@@ -8,7 +8,7 @@ import {
   fetchPartnersFromServer,
   type SessionRecord,
 } from '@/lib/localStore';
-import { INSTRUMENT_EMOJIS } from '@/lib/constants';
+import { getInstrumentInfo } from '@/lib/constants';
 import { useAppStore } from '@/store/useAppStore';
 import type { PartnerProfile } from '@/lib/localStore';
 
@@ -24,7 +24,6 @@ export default function HistoryPage() {
   const [partners, setPartners] = useState<PartnerProfile[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // マウント時にサーバーからセッション履歴とパートナーを取得してデバイス間のデータを同期する
   useEffect(() => {
     let cancelled = false;
     Promise.all([
@@ -90,6 +89,10 @@ export default function HistoryPage() {
         <ul className="flex flex-col gap-3">
           {sessions.map(session => {
             const partnerKnown = partners.some(p => p.username === session.partnerUsername);
+            const primaryInst = getInstrumentInfo(session.partnerInstruments[0] ?? '');
+            const instLabel = session.partnerInstruments
+              .map(i => getInstrumentInfo(i).emoji)
+              .join(' ');
             return (
               <li
                 key={session.id}
@@ -98,15 +101,13 @@ export default function HistoryPage() {
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-xl">
-                      {INSTRUMENT_EMOJIS[session.partnerInstrument] ?? '🎵'}
-                    </span>
+                    <span className="text-xl">{primaryInst.emoji}</span>
                     <div>
                       <p className="font-bold text-sm" style={{ color: 'var(--text)' }}>
                         {session.partnerUsername}
                       </p>
                       <p className="text-[10px]" style={{ color: 'var(--dim)' }}>
-                        {formatDate(session.date)}
+                        {instLabel}　{formatDate(session.date)}
                       </p>
                     </div>
                   </div>

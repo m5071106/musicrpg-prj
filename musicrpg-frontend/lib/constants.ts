@@ -18,17 +18,35 @@ export const STAT_COLORS = {
   stat_stage: '#b06ee0',
 };
 
-export const INSTRUMENT_LABELS = {
-  piano: 'ピアノ',
-  esax: 'エレキサックス',
-  vocal: 'ボーカル',
-};
+export const PRESET_INSTRUMENTS = [
+  { key: 'piano', label: 'ピアノ', emoji: '🎹' },
+  { key: 'keyboard', label: 'キーボード', emoji: '🎹' },
+  { key: 'guitar', label: 'ギター', emoji: '🎸' },
+  { key: 'electric_guitar', label: 'エレキギター', emoji: '🎸' },
+  { key: 'bass', label: 'ベース', emoji: '🎸' },
+  { key: 'violin', label: 'ヴァイオリン', emoji: '🎻' },
+  { key: 'viola', label: 'ヴィオラ', emoji: '🎻' },
+  { key: 'cello', label: 'チェロ', emoji: '🎻' },
+  { key: 'contrabass', label: 'コントラバス', emoji: '🎻' },
+  { key: 'vocal', label: 'ボーカル', emoji: '🎤' },
+  { key: 'sax', label: 'サックス', emoji: '🎷' },
+  { key: 'esax', label: 'エレキサックス', emoji: '🎷' },
+  { key: 'trumpet', label: 'トランペット', emoji: '🎺' },
+  { key: 'trombone', label: 'トロンボーン', emoji: '🎺' },
+  { key: 'french_horn', label: 'フレンチホルン', emoji: '🎺' },
+  { key: 'flute', label: 'フルート', emoji: '🪈' },
+  { key: 'clarinet', label: 'クラリネット', emoji: '🎵' },
+  { key: 'oboe', label: 'オーボエ', emoji: '🎵' },
+  { key: 'drums', label: 'ドラム', emoji: '🥁' },
+  { key: 'percussion', label: 'パーカッション', emoji: '🥁' },
+  { key: 'ukulele', label: 'ウクレレ', emoji: '🎸' },
+  { key: 'harp', label: 'ハープ', emoji: '🎵' },
+] as const;
 
-export const INSTRUMENT_EMOJIS = {
-  piano: '🎹',
-  esax: '🎷',
-  vocal: '🎤',
-};
+export function getInstrumentInfo(inst: string): { label: string; emoji: string } {
+  const preset = PRESET_INSTRUMENTS.find(p => p.key === inst);
+  return preset ? { label: preset.label, emoji: preset.emoji } : { label: inst, emoji: '🎵' };
+}
 
 export const SENPAI_DATA: Stats = {
   stat_tempo: 4,

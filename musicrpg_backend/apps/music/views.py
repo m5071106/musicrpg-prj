@@ -66,7 +66,7 @@ class ComparePartnerListCreateView(generics.ListCreateAPIView):
             user=request.user,
             partner_username=partner_username,
             defaults={
-                'partner_instrument': serializer.validated_data['partner_instrument'],
+                'partner_instruments': serializer.validated_data['partner_instruments'],
                 'partner_songs': serializer.validated_data['partner_songs'],
                 'partner_stats': serializer.validated_data['partner_stats'],
                 'scanned_at': serializer.validated_data['scanned_at'],
@@ -113,7 +113,7 @@ class CompareSessionListCreateView(generics.ListCreateAPIView):
             defaults={
                 'user': request.user,
                 'partner_username': serializer.validated_data['partner_username'],
-                'partner_instrument': serializer.validated_data['partner_instrument'],
+                'partner_instruments': serializer.validated_data['partner_instruments'],
                 'played_songs': serializer.validated_data['played_songs'],
                 'session_date': serializer.validated_data['session_date'],
             },
