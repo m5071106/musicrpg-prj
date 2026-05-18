@@ -1,25 +1,21 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { SWRConfig, useSWRConfig } from 'swr';
 import NavBar from '@/components/NavBar';
+import { apiFetch } from '@/lib/api';
+import { checkPartnerUpdates } from '@/lib/localStore';
+import { useAppStore } from '@/store/useAppStore';
 
 import type { Cache, State } from 'swr';
 
 const SWR_CACHE_PREFIX = 'swr-cache-';
 
-/** ログイン中ユーザーのキャッシュキーを返す */
 function getCacheKey(username: string): string {
   return `${SWR_CACHE_PREFIX}${username}`;
 }
 
-/**
- * SWR キャッシュをログインユーザーごとに localStorage へ永続化する。
- * ユーザー名をキーに含めることで、別アカウントのキャッシュが混入するのを防ぐ。
- * PWA・Web どちらで起動しても同じサーバーデータを参照できるよう、
- * アプリが再表示された際（visibilitychange）に全キーを revalidate する。
- */
 function useLocalSWRCache(username: string) {
   const cacheKey = getCacheKey(username);
 
@@ -55,7 +51,6 @@ function useLocalSWRCache(username: string) {
   return cache;
 }
 
-/** PWA / タブ復帰時にサーバーから最新データを取り直すコンポーネント */
 function RevalidateOnVisible() {
   const { mutate } = useSWRConfig();
   const mutateRef = useRef(mutate);
@@ -64,7 +59,6 @@ function RevalidateOnVisible() {
   useEffect(() => {
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
-        // すべての SWR キーを再検証してサーバーの最新データを取得する
         mutateRef.current(() => true, undefined, { revalidate: true });
       }
     };
@@ -74,6 +68,66 @@ function RevalidateOnVisible() {
   }, []);
 
   return null;
+}
+
+/** パートナーの曲リスト更新を検知してトースト通知を出すコンポーネント */
+function PartnerUpdateChecker() {
+  const addUpdatedPartners = useAppStore(s => s.addUpdatedPartners);
+  const [toastNames, setToastNames] = useState<string[]>([]);
+  const checkingRef = useRef(false);
+
+  const COOLDOWN_MS = 30 * 60 * 1000; // 30分
+
+  const runCheck = useCallback(async () => {
+    if (checkingRef.current || !navigator.onLine) return;
+    const lastChecked = Number(localStorage.getItem('mrpg_partner_check_at') ?? 0);
+    if (Date.now() - lastChecked < COOLDOWN_MS) return;
+    checkingRef.current = true;
+    localStorage.setItem('mrpg_partner_check_at', String(Date.now()));
+    try {
+      const updated = await checkPartnerUpdates(apiFetch);
+      if (updated.length > 0) {
+        addUpdatedPartners(updated);
+        setToastNames(updated);
+        setTimeout(() => setToastNames([]), 5000);
+      }
+    } finally {
+      checkingRef.current = false;
+    }
+  }, [addUpdatedPartners]);
+
+  // マウント時（ログイン直後）に実行
+  useEffect(() => {
+    runCheck();
+  }, [runCheck]);
+
+  // タブ復帰時にも実行
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') runCheck();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [runCheck]);
+
+  if (toastNames.length === 0) return null;
+
+  const message =
+    toastNames.length === 1
+      ? `🎵 ${toastNames[0]} さんの曲リストが更新されました`
+      : `🎵 ${toastNames.length}人の相手が曲リストを更新しました`;
+
+  return (
+    <div
+      className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-3 rounded-[14px] text-sm font-bold text-white shadow-lg max-w-[90vw] text-center"
+      style={{ background: 'linear-gradient(135deg, var(--purple), var(--pink))' }}
+      onClick={() => setToastNames([])}
+      role="status"
+      aria-live="polite"
+    >
+      {message}
+    </div>
+  );
 }
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -86,7 +140,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       router.push('/login');
       return;
     }
-    // キャッシュをユーザーごとに分けるためにユーザー名を取得する
     setUsername(localStorage.getItem('username') ?? 'anonymous');
   }, [router]);
 
@@ -96,14 +149,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <SWRConfig
       value={{
         provider: () => cache as Cache,
-        // フォーカス時・再接続時にサーバーから再取得してデータを最新に保つ
         revalidateOnFocus: true,
         revalidateOnReconnect: true,
       }}
     >
       <RevalidateOnVisible />
+      <PartnerUpdateChecker />
       <div className="overflow-x-hidden w-full" style={{ background: 'var(--bg)', minHeight: '100dvh' }}>
-        {/* pb-28: 大きくなったナビバー (≈72px) + safe-area-inset-bottom の余裕 */}
         <main className="pb-28 px-4 pt-4 max-w-lg mx-auto w-full">{children}</main>
         <NavBar />
       </div>
