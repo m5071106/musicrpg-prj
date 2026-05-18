@@ -14,8 +14,13 @@ export default function SongSearch({ value, mbId, onChange }: Props) {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const justSelectedRef = useRef(false);
 
   useEffect(() => {
+    if (justSelectedRef.current) {
+      justSelectedRef.current = false;
+      return;
+    }
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (value.trim().length < 2) {
       setResults([]);
@@ -41,6 +46,7 @@ export default function SongSearch({ value, mbId, onChange }: Props) {
   }
 
   function handleSelect(rec: MBRecording) {
+    justSelectedRef.current = true;
     onChange(rec.title, rec.id);
     setResults([]);
     setOpen(false);

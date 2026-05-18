@@ -20,11 +20,22 @@ export async function searchMusicBrainz(query: string): Promise<MBRecording[]> {
         'artist-credit'?: Array<{ name?: string; artist?: { name: string } }>;
       }>;
     };
-    return (data.recordings ?? []).map(r => ({
+    const all = (data.recordings ?? []).map(r => ({
       id: r.id,
       title: r.title,
       artist: r['artist-credit']?.[0]?.artist?.name ?? r['artist-credit']?.[0]?.name ?? '',
     }));
+
+    // 曲名とアーティスト名の組み合わせで重複排除し、IDが最小のものを残す
+    const map = new Map<string, MBRecording>();
+    for (const rec of all) {
+      const key = `${rec.title}\0${rec.artist}`;
+      const existing = map.get(key);
+      if (!existing || rec.id < existing.id) {
+        map.set(key, rec);
+      }
+    }
+    return Array.from(map.values());
   } catch {
     return [];
   }
