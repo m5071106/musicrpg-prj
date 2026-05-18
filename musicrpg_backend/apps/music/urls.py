@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import (
     MyProfileView,
+    PublicProfileView,
     SongListCreateView,
     SongDestroyView,
     ComparePartnerListCreateView,
@@ -11,6 +12,7 @@ from .views import (
 
 urlpatterns = [
     path('profile/', MyProfileView.as_view(), name='my-profile'),
+    path('profile/<str:username>/', PublicProfileView.as_view(), name='public-profile'),
     path('songs/', SongListCreateView.as_view(), name='song-list'),
     path('songs/<int:pk>/', SongDestroyView.as_view(), name='song-delete'),
     # パートナー管理（PWA/ブラウザ間データ共有）

@@ -164,6 +164,68 @@ export async function saveSessionToServer(
   }
 }
 
+// ── パートナー曲リスト更新チェック ───────────────────────
+
+interface PublicProfile {
+  username: string;
+  instruments: string[];
+  stat_tempo: number;
+  stat_emotion: number;
+  stat_range: number;
+  stat_effort: number;
+  stat_stage: number;
+  updated_at: string;
+  songs: Array<{ id: number; title: string; stars: number; mb_id?: string }>;
+}
+
+function songFingerprint(songs: Array<{ title: string }>): string {
+  return songs.map(s => s.title).sort().join('\0');
+}
+
+/**
+ * 既知パートナー全員の最新プロフィールをサーバーから取得し、
+ * 曲リストが変わっていた場合はローカルデータを更新してそのユーザー名を返す。
+ * ネットワークエラーは無視してオフラインでも動作する。
+ */
+export async function checkPartnerUpdates(
+  apiFetch: <T>(path: string) => Promise<T>
+): Promise<string[]> {
+  const partners = getPartners();
+  if (partners.length === 0) return [];
+
+  const updated: string[] = [];
+
+  await Promise.allSettled(
+    partners.map(async (partner) => {
+      try {
+        const current = await apiFetch<PublicProfile>(`/music/profile/${partner.username}/`);
+        const storedFp = songFingerprint(partner.songs);
+        const currentFp = songFingerprint(current.songs);
+        if (storedFp !== currentFp) {
+          updated.push(partner.username);
+          // ローカルのパートナーデータを最新情報で上書きする
+          savePartner({
+            ...partner,
+            instruments: current.instruments.length ? current.instruments : partner.instruments,
+            songs: current.songs.map(s => ({ title: s.title, stars: s.stars, mb_id: s.mb_id ?? '' })),
+            stats: {
+              stat_tempo: current.stat_tempo,
+              stat_emotion: current.stat_emotion,
+              stat_range: current.stat_range,
+              stat_effort: current.stat_effort,
+              stat_stage: current.stat_stage,
+            },
+          });
+        }
+      } catch {
+        // ネットワークエラー・ユーザーが存在しない場合はスキップ
+      }
+    })
+  );
+
+  return updated;
+}
+
 // ── QR エンコード / デコード ────────────────────────────
 // フォーマット: {v:3, u:username, i:[...instruments], s:[[title,stars],...], t:[tempo,emotion,range,effort,stage]}
 

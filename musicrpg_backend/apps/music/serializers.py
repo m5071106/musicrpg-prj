@@ -61,6 +61,22 @@ class MusicProfileSerializer(serializers.ModelSerializer):
         return v
 
 
+class PublicProfileSerializer(serializers.ModelSerializer):
+    """任意ユーザーの公開プロフィール（変更検知用）"""
+    username = serializers.CharField(source='user.username', read_only=True)
+    songs = SongSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = MusicProfile
+        fields = [
+            'username', 'instruments',
+            'stat_tempo', 'stat_emotion', 'stat_range',
+            'stat_effort', 'stat_stage',
+            'updated_at', 'songs',
+        ]
+        read_only_fields = fields
+
+
 class ComparePartnerSerializer(serializers.ModelSerializer):
     class Meta:
         model = ComparePartner

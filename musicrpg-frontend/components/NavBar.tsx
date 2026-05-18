@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { logout } from '@/lib/api';
+import { useAppStore } from '@/store/useAppStore';
 
 /** 下部バーに常時表示するナビ項目 */
 const PRIMARY_NAV = [
@@ -23,6 +24,8 @@ export default function NavBar() {
   const pathname = usePathname();
   const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const updatedPartners = useAppStore(s => s.updatedPartners);
+  const hasUpdates = updatedPartners.length > 0;
 
   function handleLogout() {
     setDrawerOpen(false);
@@ -153,11 +156,12 @@ export default function NavBar() {
       >
         {PRIMARY_NAV.map(({ href, label, icon }) => {
           const active = pathname === href;
+          const showBadge = href === '/compare' && hasUpdates;
           return (
             <Link
               key={href}
               href={href}
-              className="flex flex-col items-center justify-center gap-1 py-3 rounded-[12px] transition-all flex-1 min-w-0 active:scale-95"
+              className="relative flex flex-col items-center justify-center gap-1 py-3 rounded-[12px] transition-all flex-1 min-w-0 active:scale-95"
               style={{
                 color: active ? '#b06ee0' : '#9a8aaa',
                 background: active ? '#e8d5f8' : 'transparent',
@@ -172,6 +176,14 @@ export default function NavBar() {
               >
                 {label}
               </span>
+              {showBadge && (
+                <span
+                  className="absolute top-2 right-3 min-w-[18px] h-[18px] flex items-center justify-center rounded-full text-white text-[10px] font-bold px-1"
+                  style={{ background: '#e05555' }}
+                >
+                  {updatedPartners.length}
+                </span>
+              )}
             </Link>
           );
         })}

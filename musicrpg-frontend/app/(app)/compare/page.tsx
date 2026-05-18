@@ -52,6 +52,7 @@ function PartnerPicker({
   onSelect: (p: PartnerProfile) => void;
 }) {
   const router = useRouter();
+  const updatedPartners = useAppStore(s => s.updatedPartners);
   return (
     <div className="flex flex-col gap-4">
       <div
@@ -86,13 +87,17 @@ function PartnerPicker({
           <ul className="flex flex-col gap-2">
             {partners.map(p => {
               const primary = getInstrumentInfo(p.instruments[0] ?? '');
+              const hasUpdate = updatedPartners.includes(p.username);
               return (
                 <li key={p.username}>
                   <button
                     type="button"
                     onClick={() => onSelect(p)}
                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[12px] border-2 transition-all active:translate-y-0.5 text-left"
-                    style={{ borderColor: 'var(--border)', background: '#fdfaff' }}
+                    style={{
+                      borderColor: hasUpdate ? '#f5a623' : 'var(--border)',
+                      background: hasUpdate ? '#fffbf0' : '#fdfaff',
+                    }}
                   >
                     <span className="text-xl">{primary.emoji}</span>
                     <div className="flex-1 min-w-0">
@@ -103,7 +108,16 @@ function PartnerPicker({
                         {instrumentsLabel(p.instruments)}　{p.songs.length}曲
                       </p>
                     </div>
-                    <span className="text-xs" style={{ color: 'var(--purple)' }}>▶</span>
+                    {hasUpdate ? (
+                      <span
+                        className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0"
+                        style={{ background: '#f5a623', color: '#fff' }}
+                      >
+                        NEW
+                      </span>
+                    ) : (
+                      <span className="text-xs" style={{ color: 'var(--purple)' }}>▶</span>
+                    )}
                   </button>
                 </li>
               );
@@ -280,6 +294,7 @@ function CompareView({
 export default function ComparePage() {
   const currentPartner = useAppStore(s => s.currentPartner);
   const setCurrentPartner = useAppStore(s => s.setCurrentPartner);
+  const clearPartnerUpdate = useAppStore(s => s.clearPartnerUpdate);
   const [partners, setPartners] = useState<PartnerProfile[]>([]);
   const [loadingPartners, setLoadingPartners] = useState(true);
 
@@ -327,7 +342,10 @@ export default function ComparePage() {
       </h1>
       <PartnerPicker
         partners={partners}
-        onSelect={p => setCurrentPartner(p)}
+        onSelect={p => {
+          clearPartnerUpdate(p.username);
+          setCurrentPartner(p);
+        }}
       />
     </div>
   );

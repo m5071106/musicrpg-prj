@@ -1,8 +1,10 @@
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
+from rest_framework.exceptions import NotFound
 from .models import MusicProfile, Song, ComparePartner, CompareSession
 from .serializers import (
     MusicProfileSerializer,
+    PublicProfileSerializer,
     SongSerializer,
     ComparePartnerSerializer,
     CompareSessionSerializer,
@@ -15,6 +17,25 @@ class MyProfileView(generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         profile, _ = MusicProfile.objects.get_or_create(user=self.request.user)
+        return profile
+
+
+class PublicProfileView(generics.RetrieveAPIView):
+    """
+    GET /music/profile/<username>/ - 任意ユーザーの公開プロフィールを取得する。
+    ログイン済みユーザーがパートナーの曲リスト更新を検知するために使用する。
+    """
+    serializer_class = PublicProfileSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        from apps.users.models import User
+        username = self.kwargs['username']
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            raise NotFound('ユーザーが見つかりません')
+        profile, _ = MusicProfile.objects.get_or_create(user=user)
         return profile
 
 
